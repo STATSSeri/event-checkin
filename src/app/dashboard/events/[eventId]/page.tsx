@@ -22,6 +22,15 @@ export default function EventDetailPage() {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // イベント編集フォーム
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editVenue, setEditVenue] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   // ゲスト追加フォーム
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
@@ -52,6 +61,43 @@ export default function EventDetailPage() {
     },
     {} as Record<string, number>
   );
+
+  // イベント編集を開始
+  const handleEditOpen = () => {
+    if (!event) return;
+    setEditName(event.name);
+    setEditDate(event.event_date || '');
+    setEditTime(event.event_time || '');
+    setEditVenue(event.venue || '');
+    setEditDescription(event.description || '');
+    setIsEditing(true);
+  };
+
+  // イベント編集を保存
+  const handleEditSave = async () => {
+    if (!editName.trim()) {
+      alert('イベント名は必須です');
+      return;
+    }
+    setEditSaving(true);
+    const { error } = await supabase
+      .from('events')
+      .update({
+        name: editName.trim(),
+        event_date: editDate || null,
+        event_time: editTime || null,
+        venue: editVenue.trim() || null,
+        description: editDescription.trim() || null,
+      })
+      .eq('id', eventId);
+    setEditSaving(false);
+    if (error) {
+      alert(`更新に失敗しました: ${error.message}`);
+      return;
+    }
+    setIsEditing(false);
+    await fetchData();
+  };
 
   // ゲスト個別追加
   const handleAddGuest = async () => {
@@ -158,15 +204,84 @@ export default function EventDetailPage() {
         &larr; ダッシュボードに戻る
       </button>
 
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800">{event.name}</h1>
-        <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
-          {event.event_date && <span>{event.event_date}</span>}
-          {event.event_time && <span>{event.event_time}</span>}
-          {event.venue && <span>{event.venue}</span>}
+      {!isEditing ? (
+        <div className="mb-6 flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">{event.name}</h1>
+            <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
+              {event.event_date && <span>📅 {event.event_date}</span>}
+              {event.event_time && <span>🕐 {event.event_time}</span>}
+              {event.venue && <span>📍 {event.venue}</span>}
+            </div>
+            {event.description && (
+              <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
+                {event.description}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleEditOpen}
+            className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex-shrink-0"
+          >
+            編集
+          </button>
         </div>
-        {event.description && <p className="text-sm text-gray-600 mt-2">{event.description}</p>}
-      </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 space-y-3 border border-blue-200">
+          <h2 className="text-sm font-bold text-gray-700">イベント情報を編集</h2>
+          <input
+            type="text"
+            placeholder="イベント名 *"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="date"
+              value={editDate}
+              onChange={(e) => setEditDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+            />
+            <input
+              type="time"
+              value={editTime}
+              onChange={(e) => setEditTime(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+            />
+          </div>
+          <input
+            type="text"
+            placeholder="会場"
+            value={editVenue}
+            onChange={(e) => setEditVenue(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+          />
+          <textarea
+            placeholder="説明（招待メールにも記載されます）"
+            value={editDescription}
+            onChange={(e) => setEditDescription(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditSave}
+              disabled={editSaving}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {editSaving ? '保存中...' : '保存'}
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              disabled={editSaving}
+              className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ステータスカウント */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

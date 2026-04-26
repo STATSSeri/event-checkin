@@ -33,24 +33,25 @@ function RSVPContent() {
   const [responded, setResponded] = useState(false);
   const [respondedStatus, setRespondedStatus] = useState<'attending' | 'declined' | null>(null);
 
-  // ゲスト情報を取得
+  // ゲスト情報を取得（SECURITY DEFINER関数経由：直接テーブルアクセス禁止）
   useEffect(() => {
     const fetchGuest = async () => {
-      const { data, error } = await supabase
-        .from('guests')
-        .select('*, events(*)')
-        .eq('rsvp_token', token)
-        .single();
+      const { data, error } = await supabase.rpc('get_guest_by_rsvp_token', {
+        token,
+      });
 
-      if (error || !data) {
+      if (error || !data || data.status === 'not_found') {
         setNotFound(true);
-      } else {
-        setGuest(data as GuestWithEvent);
+      } else if (data.status === 'success' && data.guest) {
+        const g = data.guest as GuestWithEvent;
+        setGuest(g);
         // 既に回答済みの場合
-        if (data.status !== 'invited') {
+        if (g.status !== 'invited') {
           setResponded(true);
-          setRespondedStatus(data.status as 'attending' | 'declined');
+          setRespondedStatus(g.status as 'attending' | 'declined');
         }
+      } else {
+        setNotFound(true);
       }
       setLoading(false);
     };
@@ -58,20 +59,17 @@ function RSVPContent() {
     if (token) fetchGuest();
   }, [token, supabase]);
 
-  // 出欠回答を送信
+  // 出欠回答を送信（SECURITY DEFINER関数経由：書き換え可能カラムをサーバ側で制限）
   const handleResponse = async (status: 'attending' | 'declined') => {
     if (!guest || submitting) return;
     setSubmitting(true);
 
-    const { error } = await supabase
-      .from('guests')
-      .update({
-        status,
-        rsvp_responded_at: new Date().toISOString(),
-      })
-      .eq('id', guest.id);
+    const { data, error } = await supabase.rpc('respond_to_rsvp', {
+      token,
+      response: status,
+    });
 
-    if (error) {
+    if (error || !data || data.status !== 'success') {
       alert('エラーが発生しました。もう一度お試しください。');
       setSubmitting(false);
       return;

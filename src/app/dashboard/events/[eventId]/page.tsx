@@ -114,6 +114,9 @@ export default function EventDetailPage() {
       setGuestEmail('');
       setGuestOrg('');
       await fetchData();
+    } else if (error.code === '23505') {
+      // PostgreSQL unique constraint violation
+      alert('このメールアドレスは既にこのイベントに登録されています');
     } else {
       alert(`追加エラー: ${error.message}`);
     }
@@ -248,12 +251,52 @@ export default function EventDetailPage() {
       setCsvResult(
         '有効な行がありませんでした。形式: 名前,メール,組織名(任意)'
       );
+      setCsvUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // ファイル内の重複（同じメール）を排除：後勝ちで1件にまとめる
+    const dedupedMap = new Map<string, (typeof rows)[number]>();
+    for (const row of rows) {
+      dedupedMap.set(row.email.toLowerCase(), row);
+    }
+    const dedupedRows = Array.from(dedupedMap.values());
+    const fileDupCount = rows.length - dedupedRows.length;
+
+    // 既存ゲストとの重複をチェック
+    const { data: existingGuests } = await supabase
+      .from('guests')
+      .select('email')
+      .eq('event_id', eventId)
+      .in(
+        'email',
+        dedupedRows.map((r) => r.email)
+      );
+    const existingEmails = new Set(
+      (existingGuests || []).map((g) => g.email.toLowerCase())
+    );
+    const newRows = dedupedRows.filter(
+      (r) => !existingEmails.has(r.email.toLowerCase())
+    );
+    const existingDupCount = dedupedRows.length - newRows.length;
+
+    if (newRows.length === 0) {
+      const parts = [`全${rows.length}件のゲストは既に登録済みのためスキップしました`];
+      if (fileDupCount > 0)
+        parts.push(`（うちファイル内重複 ${fileDupCount}件）`);
+      setCsvResult(parts.join(''));
     } else {
-      const { error } = await supabase.from('guests').insert(rows);
+      const { error } = await supabase.from('guests').insert(newRows);
       if (error) {
         setCsvResult(`エラー: ${error.message}`);
       } else {
-        setCsvResult(`${rows.length}件のゲストを追加しました`);
+        const parts = [`${newRows.length}件のゲストを追加しました`];
+        if (existingDupCount > 0)
+          parts.push(`（${existingDupCount}件は既に登録済みのためスキップ）`);
+        if (fileDupCount > 0)
+          parts.push(`（ファイル内重複 ${fileDupCount}件はスキップ）`);
+        setCsvResult(parts.join(''));
         await fetchData();
       }
     }

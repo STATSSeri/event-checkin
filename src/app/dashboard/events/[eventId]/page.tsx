@@ -194,6 +194,10 @@ export default function EventDetailPage() {
           className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700">
           入場状況
         </button>
+        <a href="/scan" target="_blank" rel="noopener noreferrer"
+          className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700 inline-flex items-center gap-1">
+          📷 受付スキャン
+        </a>
         <button onClick={handleCsvExport}
           className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700">
           CSVエクスポート

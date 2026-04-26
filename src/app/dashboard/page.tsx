@@ -62,13 +62,17 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800">イベント一覧</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={() => setShowForm(!showForm)}
             className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
             ＋ 新規イベント
           </button>
+          <a href="/scan" target="_blank" rel="noopener noreferrer"
+            className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700 inline-flex items-center gap-1">
+            📷 受付スキャン
+          </a>
           <button onClick={handleLogout}
             className="px-3 py-1.5 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600">
             ログアウト

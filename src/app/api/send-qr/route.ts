@@ -35,8 +35,11 @@ export async function POST(request: Request) {
     const event = guest.events;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-    // QRコード生成（チェックイン用URL）
+    // QRコード生成（添付ファイル用Buffer）
+    // メール本文の表示は /api/qr/[token] エンドポイント経由で行う
+    // （Resend SDK は cid: 参照を未サポートのためURL方式を採用）
     const checkinUrl = `${appUrl}/scan?token=${guest.checkin_token}`;
+    const qrImageUrl = `${appUrl}/api/qr/${guest.checkin_token}`;
     const qrBuffer = await generateQRBuffer(checkinUrl);
 
     // イベント日時のフォーマット
@@ -77,7 +80,7 @@ export async function POST(request: Request) {
             </div>
 
             <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f9fafb; border-radius: 12px;">
-              <img src="cid:qr-ticket" alt="入場QRコード" style="width: 250px; height: 250px;" />
+              <img src="${qrImageUrl}" alt="入場QRコード" width="250" height="250" style="width: 250px; height: 250px; display: block; margin: 0 auto;" />
               <p style="color: #059669; font-weight: bold; margin-top: 12px; font-size: 16px;">
                 このQRコードを受付でご提示ください
               </p>

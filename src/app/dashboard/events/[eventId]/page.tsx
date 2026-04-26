@@ -120,22 +120,120 @@ export default function EventDetailPage() {
     setAddingGuest(false);
   };
 
-  // CSV アップロード
-  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // CSV1行を引用符・カンマエスケープ対応でパース
+  const parseCsvLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // エスケープされた引用符
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  // ヘッダ行判定（英語/日本語両対応）
+  const isHeaderRow = (cols: string[]): boolean => {
+    const joined = cols.join(' ').toLowerCase();
+    if (joined.includes('name') || joined.includes('email') || joined.includes('mail')) {
+      return true;
+    }
+    return cols.some(
+      (c) =>
+        c.includes('名前') ||
+        c.includes('氏名') ||
+        c.includes('メール') ||
+        c.includes('Eメール')
+    );
+  };
+
+  // ファイルアップロード（CSV / Excel 両対応）
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setCsvUploading(true);
     setCsvResult(null);
 
-    const text = await file.text();
-    const lines = text.split('\n').map((l) => l.trim()).filter((l) => l);
+    let rawRows: string[][] = [];
 
-    // ヘッダ行判定: 1行目に"name"が含まれていればスキップ
-    const startIdx = lines[0]?.toLowerCase().includes('name') ? 1 : 0;
+    try {
+      const ext = file.name.toLowerCase().split('.').pop() || '';
+      const isExcel =
+        ext === 'xlsx' ||
+        ext === 'xls' ||
+        file.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel';
 
-    const rows: { event_id: string; name: string; email: string; organization: string | null }[] = [];
-    for (let i = startIdx; i < lines.length; i++) {
-      const cols = lines[i].split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
+      if (isExcel) {
+        // Excelファイル: xlsxライブラリを動的インポート（CSVのみ利用者には負荷ゼロ）
+        const XLSX = await import('xlsx');
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          setCsvResult('ファイルにシートが含まれていません');
+          setCsvUploading(false);
+          return;
+        }
+        const sheet = workbook.Sheets[firstSheetName];
+        const json = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+          header: 1,
+          defval: '',
+        });
+        rawRows = json
+          .map((row) =>
+            Array.isArray(row)
+              ? row.map((cell) => String(cell ?? '').trim())
+              : []
+          )
+          .filter((row) => row.some((c) => c)); // 完全空行はスキップ
+      } else {
+        // CSVファイル
+        let text = await file.text();
+        // BOM除去
+        if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter((l) => l);
+        rawRows = lines.map(parseCsvLine);
+      }
+    } catch (err) {
+      console.error('ファイル読み込みエラー:', err);
+      setCsvResult('ファイルの読み込みに失敗しました');
+      setCsvUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // ヘッダ判定
+    const dataRows =
+      rawRows.length > 0 && isHeaderRow(rawRows[0])
+        ? rawRows.slice(1)
+        : rawRows;
+
+    const rows: {
+      event_id: string;
+      name: string;
+      email: string;
+      organization: string | null;
+    }[] = [];
+    for (const cols of dataRows) {
       if (cols.length >= 2 && cols[0] && cols[1]) {
         rows.push({
           event_id: eventId,
@@ -147,7 +245,9 @@ export default function EventDetailPage() {
     }
 
     if (rows.length === 0) {
-      setCsvResult('有効な行がありませんでした。CSV形式: 名前,メール,組織名(任意)');
+      setCsvResult(
+        '有効な行がありませんでした。形式: 名前,メール,組織名(任意)'
+      );
     } else {
       const { error } = await supabase.from('guests').insert(rows);
       if (error) {
@@ -336,13 +436,26 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* CSV アップロード */}
+      {/* ファイルアップロード（CSV / Excel） */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <h2 className="text-sm font-bold text-gray-700 mb-2">CSVインポート</h2>
-        <p className="text-xs text-gray-500 mb-2">CSV形式: 名前,メール,組織名(任意) ※1行目がヘッダの場合は自動スキップ</p>
+        <h2 className="text-sm font-bold text-gray-700 mb-2">
+          ファイルインポート（CSV / Excel）
+        </h2>
+        <p className="text-xs text-gray-500 mb-2">
+          列の順序: <strong>名前</strong>, <strong>メール</strong>, 組織名(任意)
+          <br />
+          ※1行目がヘッダ（「名前」「メール」「name」等）の場合は自動スキップ
+          <br />
+          ※Excelの場合は最初のシートが読み込まれます
+        </p>
         <div className="flex items-center gap-3">
-          <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleCsvUpload}
-            className="text-sm text-gray-600" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            onChange={handleFileUpload}
+            className="text-sm text-gray-600"
+          />
           {csvUploading && <span className="text-sm text-gray-500">処理中...</span>}
         </div>
         {csvResult && (

@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
+// ユーザーセッション付きクライアント（SSR / Server Component用）
 export function createClient() {
   const cookieStore = cookies();
   return createServerClient(
@@ -21,22 +23,16 @@ export function createClient() {
   );
 }
 
-// サービスロールキー付きクライアント（API Route用）
+// サービスロールキー付きクライアント（API Route用 / RLSバイパス）
+// cookieを渡さずに直接service_roleで認証することでRLSを完全にバイパス
 export function createServiceClient() {
-  const cookieStore = cookies();
-  return createServerClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     }
   );

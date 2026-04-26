@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
+import { verifyEventOwnership } from '@/lib/auth';
 import type { GuestStatus } from '@/types';
 
 // ステータスの日本語マッピング
@@ -39,6 +40,15 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { error: 'eventId は必須です' },
         { status: 400 }
+      );
+    }
+
+    // 認可チェック: 呼び出し元が当該イベントの主催者か検証
+    const auth = await verifyEventOwnership(eventId);
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'このイベントへの操作権限がありません' },
+        { status: 403 }
       );
     }
 

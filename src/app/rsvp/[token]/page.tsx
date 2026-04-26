@@ -76,12 +76,13 @@ function RSVPContent() {
     }
 
     // 出席の場合、QRコードを自動送信
+    // guestIdではなくrsvpTokenを渡すことで、API側でゲストID推測攻撃を防止
     if (status === 'attending') {
       try {
         await fetch('/api/send-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ guestId: guest.id }),
+          body: JSON.stringify({ rsvpToken: token }),
         });
       } catch {
         // QR送信失敗してもRSVP自体は成功

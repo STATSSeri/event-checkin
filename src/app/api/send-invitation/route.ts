@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
+import { verifyEventOwnership } from '@/lib/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -12,6 +13,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'eventId と guestIds は必須です' },
         { status: 400 }
+      );
+    }
+
+    // 認可チェック: 呼び出し元が当該イベントの主催者か検証
+    const auth = await verifyEventOwnership(eventId);
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'このイベントへの操作権限がありません' },
+        { status: 403 }
       );
     }
 

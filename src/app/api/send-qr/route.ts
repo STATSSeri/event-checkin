@@ -7,28 +7,37 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
-    const { guestId } = await request.json();
+    const { rsvpToken } = await request.json();
 
-    if (!guestId) {
+    // 認可: rsvpToken（メール内リンクのトークン）保有者のみ呼び出し可能
+    if (!rsvpToken) {
       return NextResponse.json(
-        { error: 'guestId は必須です' },
+        { error: 'rsvpToken は必須です' },
         { status: 400 }
       );
     }
 
     const supabase = createServiceClient();
 
-    // ゲスト+イベント情報を取得
+    // ゲスト+イベント情報をrsvp_tokenで取得
     const { data: guest, error: guestError } = await supabase
       .from('guests')
       .select('*, events(*)')
-      .eq('id', guestId)
+      .eq('rsvp_token', rsvpToken)
       .single();
 
     if (guestError || !guest) {
       return NextResponse.json(
         { error: 'ゲストが見つかりません' },
         { status: 404 }
+      );
+    }
+
+    // 出席回答済みのゲストのみQR送信を許可（攻撃者によるスパム防止）
+    if (guest.status !== 'attending' && guest.status !== 'checked_in') {
+      return NextResponse.json(
+        { error: '出席回答済みのゲストのみQRコードを送信できます' },
+        { status: 400 }
       );
     }
 
@@ -114,7 +123,7 @@ export async function POST(request: Request) {
     await supabase
       .from('guests')
       .update({ qr_sent_at: new Date().toISOString() })
-      .eq('id', guestId);
+      .eq('id', guest.id);
 
     return NextResponse.json({ success: true });
   } catch (err) {

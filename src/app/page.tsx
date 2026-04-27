@@ -110,10 +110,10 @@ export default function LoginPage() {
 
       {/* 小フッター */}
       <p
-        className="text-[10px] uppercase tracking-[0.25em] text-forest-60 mt-12"
-        style={{ fontFamily: 'var(--font-mark)' }}
+        className="text-xs text-forest-60 mt-12 tracking-[0.08em]"
+        style={{ fontFamily: 'var(--font-jp)', fontWeight: 700 }}
       >
-        © 2026 Stats Corporation
+        運営：スタッツ株式会社
       </p>
     </div>
   );

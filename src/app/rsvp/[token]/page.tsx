@@ -172,11 +172,12 @@ function RSVPContent() {
           {event.description && (
             <div className="flex items-start gap-3">
               <span className="text-gray-400 mt-0.5">📝</span>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-500">詳細</p>
-                <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                  {event.description}
-                </p>
+                <div
+                  className="rich-content text-gray-700 text-sm"
+                  dangerouslySetInnerHTML={{ __html: event.description }}
+                />
               </div>
             </div>
           )}

@@ -96,7 +96,7 @@ export async function POST(request: Request) {
                 <div style="background: #ECEAE3; padding: 20px; margin: 24px 0;">
                   ${eventDate ? `<p style="margin: 4px 0; color: #1F3B2F;">📅 <strong>日時:</strong> ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}</p>` : ''}
                   ${event.venue ? `<p style="margin: 4px 0; color: #1F3B2F;">📍 <strong>会場:</strong> ${event.venue}</p>` : ''}
-                  ${event.description ? `<div style="margin-top: 14px; padding-top: 14px; border-top: 0.5px solid rgba(31, 59, 47, 0.3); color: rgba(31, 59, 47, 0.8); font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${event.description}</div>` : ''}
+                  ${event.description ? `<div style="margin-top: 14px; padding-top: 14px; border-top: 0.5px solid rgba(31, 59, 47, 0.3); color: rgba(31, 59, 47, 0.8); font-size: 14px; line-height: 1.7;">${event.description}</div>` : ''}
                 </div>
 
                 <p style="color: rgba(31, 59, 47, 0.8); line-height: 1.8;">

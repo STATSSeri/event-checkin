@@ -35,3 +35,41 @@ body {
   background: var(--color-forest);
   color: var(--color-cream);
 }
+
+/* リッチテキスト本文のスタイル
+   イベント説明欄でTipTapが出力するHTMLの表示用 */
+.rich-content {
+  word-break: break-word;
+}
+.rich-content p {
+  margin: 0.4em 0;
+}
+.rich-content p:first-child {
+  margin-top: 0;
+}
+.rich-content p:last-child {
+  margin-bottom: 0;
+}
+.rich-content strong,
+.rich-content b {
+  font-weight: 700;
+}
+.rich-content em,
+.rich-content i {
+  font-style: italic;
+}
+.rich-content a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.rich-content a:hover {
+  opacity: 0.8;
+}
+/* 編集中の空文字placeholder的振る舞い */
+.rich-content p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

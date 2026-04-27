@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event } from '@/types';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -120,13 +121,16 @@ export default function DashboardPage() {
             onChange={(e) => setVenue(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
           />
-          <textarea
-            placeholder="説明（任意）"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
-          />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">
+              説明（任意・太字/斜体/リンク使用可、招待メールにも記載されます）
+            </p>
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              minHeightClass="min-h-[80px]"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleCreate}

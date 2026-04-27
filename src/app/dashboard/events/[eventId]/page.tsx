@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event, Guest, GuestStatus } from '@/types';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 // 表示用ステータス: DB上は status='invited' + invitation_sent_at IS NULL の状態を
 // 「招待メール未送信(pending)」として表示し分ける
@@ -385,9 +386,10 @@ export default function EventDetailPage() {
               {event.venue && <span>📍 {event.venue}</span>}
             </div>
             {event.description && (
-              <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
-                {event.description}
-              </p>
+              <div
+                className="rich-content text-sm text-gray-600 mt-2"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
             )}
           </div>
           <button
@@ -428,13 +430,16 @@ export default function EventDetailPage() {
             onChange={(e) => setEditVenue(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
           />
-          <textarea
-            placeholder="説明（招待メールにも記載されます）"
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
-          />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">
+              説明（太字/斜体/リンク使用可、招待メールにも記載されます）
+            </p>
+            <RichTextEditor
+              value={editDescription}
+              onChange={setEditDescription}
+              minHeightClass="min-h-[100px]"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleEditSave}

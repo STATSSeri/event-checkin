@@ -17,6 +17,10 @@ export default function RemindPage() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: number; failed: number } | null>(null);
 
+  // フィルタ：全員 / リマインド未送信のみ / リマインド送信済のみ
+  type FilterMode = 'all' | 'never_reminded' | 'already_reminded';
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+
   const fetchData = useCallback(async () => {
     // リマインド対象は「招待メール送信済み」かつ「未回答」の人のみ
     // （まだ招待を送ってない人にリマインドは送れない）
@@ -37,11 +41,25 @@ export default function RemindPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // フィルタ適用後のゲストリスト
+  const filteredGuests = guests.filter((g) => {
+    if (filterMode === 'never_reminded') return !g.reminder_sent_at;
+    if (filterMode === 'already_reminded') return !!g.reminder_sent_at;
+    return true;
+  });
+
+  // フィルタ切替時に選択状態をクリア（混乱防止）
+  const handleFilterChange = (mode: FilterMode) => {
+    setFilterMode(mode);
+    setSelected(new Set());
+  };
+
   const toggleAll = () => {
-    if (selected.size === guests.length) {
+    // フィルタ後のゲストを基準に全選択
+    if (selected.size === filteredGuests.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(guests.map((g) => g.id)));
+      setSelected(new Set(filteredGuests.map((g) => g.id)));
     }
   };
 
@@ -118,15 +136,49 @@ export default function RemindPage() {
         </div>
       ) : (
         <>
+          {/* フィルタトグル */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {(
+              [
+                { key: 'all', label: 'すべて', count: guests.length },
+                {
+                  key: 'never_reminded',
+                  label: 'まだ送っていない人',
+                  count: guests.filter((g) => !g.reminder_sent_at).length,
+                },
+                {
+                  key: 'already_reminded',
+                  label: '一度送った人',
+                  count: guests.filter((g) => !!g.reminder_sent_at).length,
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => handleFilterChange(opt.key)}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  filterMode === opt.key
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                {opt.label}（{opt.count}）
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-3 mb-4">
             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
               <input
                 type="checkbox"
-                checked={selected.size === guests.length && guests.length > 0}
+                checked={
+                  selected.size === filteredGuests.length &&
+                  filteredGuests.length > 0
+                }
                 onChange={toggleAll}
                 className="rounded"
               />
-              全て選択（{guests.length}名）
+              全て選択（{filteredGuests.length}名）
             </label>
             <button
               onClick={handleSend}
@@ -137,44 +189,58 @@ export default function RemindPage() {
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            {guests.map((g) => (
-              <label
-                key={g.id}
-                className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(g.id)}
-                  onChange={() => toggleOne(g.id)}
-                  className="rounded"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-800 truncate">
-                    {g.name}
+          {filteredGuests.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center text-sm text-gray-500">
+              このフィルタに該当するゲストはいません
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              {filteredGuests.map((g) => (
+                <label
+                  key={g.id}
+                  className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(g.id)}
+                    onChange={() => toggleOne(g.id)}
+                    className="rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-800 truncate">
+                      {g.name}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {g.email}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 truncate">{g.email}</div>
-                </div>
-                <div className="text-right hidden md:block">
-                  {g.organization && (
-                    <div className="text-xs text-gray-400">{g.organization}</div>
-                  )}
-                  {g.invitation_sent_at && (
-                    <div className="text-xs text-gray-400">
-                      招待送信:{' '}
-                      {new Date(g.invitation_sent_at).toLocaleDateString('ja-JP')}
-                    </div>
-                  )}
-                  {g.reminder_sent_at && (
-                    <div className="text-xs text-orange-500">
-                      前回リマインド:{' '}
-                      {new Date(g.reminder_sent_at).toLocaleDateString('ja-JP')}
-                    </div>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
+                  <div className="text-right hidden md:block">
+                    {g.organization && (
+                      <div className="text-xs text-gray-400">
+                        {g.organization}
+                      </div>
+                    )}
+                    {g.invitation_sent_at && (
+                      <div className="text-xs text-gray-400">
+                        招待送信:{' '}
+                        {new Date(g.invitation_sent_at).toLocaleDateString(
+                          'ja-JP'
+                        )}
+                      </div>
+                    )}
+                    {g.reminder_sent_at && (
+                      <div className="text-xs text-orange-500">
+                        前回リマインド:{' '}
+                        {new Date(g.reminder_sent_at).toLocaleDateString(
+                          'ja-JP'
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

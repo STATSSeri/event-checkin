@@ -29,26 +29,74 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">
-          イベント受付管理
+        <h1
+          className="text-3xl text-center mb-2 text-forest italic"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          S/PASS
         </h1>
-        <p className="text-center text-gray-500 text-sm mb-8">主催者ログイン</p>
+        <p
+          className="text-center text-forest-60 text-xs mb-10 tracking-[0.22em] uppercase"
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Host Sign In
+        </p>
 
-        <form onSubmit={handleLogin} className="bg-white rounded-lg shadow-md p-6 space-y-4">
+        <form
+          onSubmit={handleLogin}
+          className="bg-cream border-[0.5px] border-forest-30 p-6 space-y-5"
+        >
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900" />
+            <label
+              htmlFor="email"
+              className="block text-[10px] uppercase tracking-[0.22em] text-forest-60 mb-1"
+              style={{ fontFamily: 'var(--font-mark)' }}
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full bg-transparent border-b-[0.5px] border-forest-30 focus:border-forest outline-none py-2 text-sm text-forest placeholder:text-forest-30 transition-colors font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
-            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900" />
+            <label
+              htmlFor="password"
+              className="block text-[10px] uppercase tracking-[0.22em] text-forest-60 mb-1"
+              style={{ fontFamily: 'var(--font-mark)' }}
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-transparent border-b-[0.5px] border-forest-30 focus:border-forest outline-none py-2 text-sm text-forest placeholder:text-forest-30 transition-colors font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            />
           </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          <button type="submit" disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium">
-            {loading ? 'ログイン中...' : 'ログイン'}
+          {error && (
+            <p
+              className="text-red-700 text-sm font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            >
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-forest text-cream text-[11px] uppercase tracking-[0.22em] hover:opacity-90 disabled:opacity-50 transition-opacity"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>

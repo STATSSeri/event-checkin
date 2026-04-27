@@ -98,8 +98,13 @@ function RSVPContent() {
   // ローディング中
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">読み込み中...</div>
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div
+          className="animate-pulse text-forest-60 text-xs uppercase tracking-[0.22em]"
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Loading...
+        </div>
       </div>
     );
   }
@@ -107,11 +112,19 @@ function RSVPContent() {
   // 無効なリンク
   if (notFound) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="bg-cream border-[0.5px] border-forest-30 p-10 max-w-md w-full text-center">
           <div className="text-5xl mb-4">🔗</div>
-          <h1 className="text-xl font-bold text-gray-800 mb-2">無効なリンクです</h1>
-          <p className="text-gray-500 text-sm">
+          <h1
+            className="text-xl text-forest mb-3 italic"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            Link Invalid
+          </h1>
+          <p
+            className="text-forest-60 text-sm font-jp"
+            style={{ fontFamily: 'var(--font-jp)' }}
+          >
             このリンクは無効か、既に期限切れです。
           </p>
         </div>
@@ -136,22 +149,40 @@ function RSVPContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full overflow-hidden">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+      <div className="bg-cream border-[0.5px] border-forest-30 max-w-md w-full overflow-hidden">
         {/* ヘッダー */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 text-white text-center">
-          <p className="text-sm opacity-80 mb-1">ご招待</p>
-          <h1 className="text-2xl font-bold">{event.name}</h1>
+        <div className="bg-forest px-6 py-10 text-cream text-center">
+          <p
+            className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-3"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            You&apos;re Invited
+          </p>
+          <h1
+            className="text-2xl md:text-3xl font-jp leading-snug"
+            style={{ fontFamily: 'var(--font-jp)' }}
+          >
+            {event.name}
+          </h1>
         </div>
 
         {/* イベント情報 */}
-        <div className="px-6 py-6 space-y-3 border-b border-gray-100">
+        <div className="px-6 py-6 space-y-4 border-b-[0.5px] border-forest-30">
           {event.event_date && (
             <div className="flex items-start gap-3">
-              <span className="text-gray-400 mt-0.5">📅</span>
+              <span className="text-forest-30 mt-0.5">📅</span>
               <div>
-                <p className="text-sm text-gray-500">日時</p>
-                <p className="text-gray-800 font-medium">
+                <p
+                  className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+                  style={{ fontFamily: 'var(--font-mark)' }}
+                >
+                  Date
+                </p>
+                <p
+                  className="text-forest font-jp mt-1"
+                  style={{ fontFamily: 'var(--font-jp)' }}
+                >
                   {formatDate(event.event_date)}
                   {event.event_time && ` ${event.event_time}`}
                 </p>
@@ -160,71 +191,119 @@ function RSVPContent() {
           )}
           {event.venue && (
             <div className="flex items-start gap-3">
-              <span className="text-gray-400 mt-0.5">📍</span>
+              <span className="text-forest-30 mt-0.5">📍</span>
               <div>
-                <p className="text-sm text-gray-500">会場</p>
-                <p className="text-gray-800 font-medium">{event.venue}</p>
+                <p
+                  className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+                  style={{ fontFamily: 'var(--font-mark)' }}
+                >
+                  Venue
+                </p>
+                <p
+                  className="text-forest font-jp mt-1"
+                  style={{ fontFamily: 'var(--font-jp)' }}
+                >
+                  {event.venue}
+                </p>
               </div>
             </div>
           )}
           {event.description && (
             <div className="flex items-start gap-3">
-              <span className="text-gray-400 mt-0.5">📝</span>
+              <span className="text-forest-30 mt-0.5">📝</span>
               <div>
-                <p className="text-sm text-gray-500">詳細</p>
-                <p className="text-gray-700 text-sm">{event.description}</p>
+                <p
+                  className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+                  style={{ fontFamily: 'var(--font-mark)' }}
+                >
+                  Details
+                </p>
+                <p
+                  className="text-forest-80 text-sm whitespace-pre-wrap mt-1 font-jp"
+                  style={{ fontFamily: 'var(--font-jp)' }}
+                >
+                  {event.description}
+                </p>
               </div>
             </div>
           )}
         </div>
 
         {/* ゲスト名 */}
-        <div className="px-6 py-4 bg-gray-50 text-center">
-          <p className="text-sm text-gray-500">
+        <div className="px-6 py-4 bg-mist text-center">
+          <p
+            className="text-sm text-forest-80 font-jp"
+            style={{ fontFamily: 'var(--font-jp)' }}
+          >
             {guest.name} 様
             {guest.organization && (
-              <span className="text-gray-400">（{guest.organization}）</span>
+              <span className="text-forest-60">（{guest.organization}）</span>
             )}
           </p>
         </div>
 
         {/* 回答セクション */}
-        <div className="px-6 py-6">
+        <div className="px-6 py-8">
           {responded ? (
-            // 回答済み
+            // 回答済み（成功円アイコンの色は機能色として保持）
             <div className="text-center space-y-3">
               {respondedStatus === 'attending' ? (
                 <>
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-3xl">✓</span>
                   </div>
-                  <h2 className="text-lg font-bold text-gray-800">
-                    ご出席ありがとうございます
+                  <h2
+                    className="text-lg text-forest italic"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    Thank you for accepting
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className="text-sm text-forest-60 font-jp"
+                    style={{ fontFamily: 'var(--font-jp)' }}
+                  >
                     QRコードをメールで送信しました
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p
+                    className="text-xs text-forest-60 font-jp"
+                    style={{ fontFamily: 'var(--font-jp)' }}
+                  >
                     当日はQRコードを受付でご提示ください
                   </p>
                 </>
               ) : respondedStatus === 'declined' ? (
                 <>
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-3xl text-gray-400">✕</span>
+                  <div className="w-16 h-16 bg-mist rounded-full flex items-center justify-center mx-auto border-[0.5px] border-forest-30">
+                    <span className="text-3xl text-forest-60">✕</span>
                   </div>
-                  <h2 className="text-lg font-bold text-gray-800">
-                    ご回答ありがとうございます
+                  <h2
+                    className="text-lg text-forest italic"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    Thank you for your reply
                   </h2>
-                  <p className="text-sm text-gray-500">欠席で承りました</p>
+                  <p
+                    className="text-sm text-forest-60 font-jp"
+                    style={{ fontFamily: 'var(--font-jp)' }}
+                  >
+                    欠席で承りました
+                  </p>
                 </>
               ) : (
                 <>
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-3xl">📋</span>
                   </div>
-                  <h2 className="text-lg font-bold text-gray-800">回答済みです</h2>
-                  <p className="text-sm text-gray-500">
+                  <h2
+                    className="text-lg text-forest italic"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    Already Responded
+                  </h2>
+                  <p
+                    className="text-sm text-forest-60 font-jp"
+                    style={{ fontFamily: 'var(--font-jp)' }}
+                  >
                     現在のステータス:{' '}
                     {respondedStatus === 'attending' ? '出席' : '欠席'}
                   </p>
@@ -233,23 +312,28 @@ function RSVPContent() {
             </div>
           ) : (
             // 未回答 - 出欠ボタン
-            <div className="space-y-4">
-              <p className="text-center text-gray-600 text-sm mb-4">
+            <div className="space-y-3">
+              <p
+                className="text-center text-forest-60 text-sm mb-5 font-jp"
+                style={{ fontFamily: 'var(--font-jp)' }}
+              >
                 出欠をお知らせください
               </p>
               <button
                 onClick={() => handleResponse('attending')}
                 disabled={submitting}
-                className="w-full py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                className="w-full py-4 bg-forest text-cream text-[11px] uppercase tracking-[0.25em] hover:opacity-90 disabled:opacity-50 transition-opacity"
+                style={{ fontFamily: 'var(--font-mark)' }}
               >
-                {submitting ? '送信中...' : '出席する'}
+                {submitting ? 'Sending...' : 'Accept · 出席する'}
               </button>
               <button
                 onClick={() => handleResponse('declined')}
                 disabled={submitting}
-                className="w-full py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-lg font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 border-[0.5px] border-forest text-forest text-[11px] uppercase tracking-[0.25em] hover:bg-forest hover:text-cream disabled:opacity-50 transition-colors"
+                style={{ fontFamily: 'var(--font-mark)' }}
               >
-                {submitting ? '送信中...' : '欠席する'}
+                {submitting ? 'Sending...' : 'Decline · 欠席する'}
               </button>
             </div>
           )}

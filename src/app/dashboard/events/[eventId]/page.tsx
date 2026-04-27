@@ -328,69 +328,117 @@ export default function EventDetailPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-500">読み込み中...</div>;
-  }
-
-  if (!event) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-500 gap-4">
-        <p>イベントが見つかりません</p>
-        <button onClick={() => router.push('/dashboard')} className="text-blue-600 underline">ダッシュボードに戻る</button>
+      <div
+        className="min-h-screen flex items-center justify-center text-forest-60 text-sm font-jp"
+        style={{ fontFamily: 'var(--font-jp)' }}
+      >
+        読み込み中...
       </div>
     );
   }
 
+  if (!event) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p
+          className="text-forest-60 font-jp"
+          style={{ fontFamily: 'var(--font-jp)' }}
+        >
+          イベントが見つかりません
+        </p>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="text-[10px] uppercase tracking-[0.22em] text-forest hover:opacity-70 transition-opacity"
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  // S/PASS Design System: 共通スタイル
+  const inputBase =
+    'w-full bg-transparent border-b-[0.5px] border-forest-30 focus:border-forest outline-none py-2 text-sm text-forest placeholder:text-forest-30 transition-colors';
+  const primaryBtn =
+    'px-4 py-2 text-[11px] uppercase tracking-[0.22em] bg-forest text-cream hover:opacity-90 transition-opacity disabled:opacity-40';
+  const secondaryBtn =
+    'px-3 py-1.5 text-[11px] uppercase tracking-[0.22em] border-[0.5px] border-forest text-forest hover:bg-forest hover:text-cream transition-colors';
+
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto">
       {/* ヘッダ */}
-      <button onClick={() => router.push('/dashboard')} className="text-sm text-blue-600 hover:underline mb-4 inline-block">
-        &larr; ダッシュボードに戻る
+      <button
+        onClick={() => router.push('/dashboard')}
+        className="text-[10px] uppercase tracking-[0.22em] text-forest-60 hover:text-forest mb-6 inline-block transition-colors"
+        style={{ fontFamily: 'var(--font-mark)' }}
+      >
+        &larr; Back to Dashboard
       </button>
 
       {!isEditing ? (
-        <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="mb-8 flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">{event.name}</h1>
-            <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
+            <h1
+              className="text-2xl md:text-3xl text-forest font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            >
+              {event.name}
+            </h1>
+            <div
+              className="flex flex-wrap gap-3 text-xs text-forest-60 mt-2 font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            >
               {event.event_date && <span>📅 {event.event_date}</span>}
               {event.event_time && <span>🕐 {event.event_time}</span>}
               {event.venue && <span>📍 {event.venue}</span>}
             </div>
             {event.description && (
-              <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
+              <p
+                className="text-sm text-forest-80 mt-3 whitespace-pre-wrap font-jp"
+                style={{ fontFamily: 'var(--font-jp)' }}
+              >
                 {event.description}
               </p>
             )}
           </div>
           <button
             onClick={handleEditOpen}
-            className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex-shrink-0"
+            className={`${secondaryBtn} flex-shrink-0`}
+            style={{ fontFamily: 'var(--font-mark)' }}
           >
-            編集
+            Edit
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 space-y-3 border border-blue-200">
-          <h2 className="text-sm font-bold text-gray-700">イベント情報を編集</h2>
+        <div className="bg-mist border-[0.5px] border-forest p-5 mb-8 space-y-4">
+          <h2
+            className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            Edit Event
+          </h2>
           <input
             type="text"
             placeholder="イベント名 *"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+            className={`${inputBase} font-jp`}
+            style={{ fontFamily: 'var(--font-jp)' }}
           />
           <div className="grid grid-cols-2 gap-3">
             <input
               type="date"
               value={editDate}
               onChange={(e) => setEditDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+              className={inputBase}
             />
             <input
               type="time"
               value={editTime}
               onChange={(e) => setEditTime(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+              className={inputBase}
             />
           </div>
           <input
@@ -398,94 +446,158 @@ export default function EventDetailPage() {
             placeholder="会場"
             value={editVenue}
             onChange={(e) => setEditVenue(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+            className={`${inputBase} font-jp`}
+            style={{ fontFamily: 'var(--font-jp)' }}
           />
           <textarea
             placeholder="説明（招待メールにも記載されます）"
             value={editDescription}
             onChange={(e) => setEditDescription(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800"
+            className={`${inputBase} resize-none font-jp`}
+            style={{ fontFamily: 'var(--font-jp)' }}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button
               onClick={handleEditSave}
               disabled={editSaving}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className={primaryBtn}
+              style={{ fontFamily: 'var(--font-mark)' }}
             >
-              {editSaving ? '保存中...' : '保存'}
+              {editSaving ? 'Saving...' : 'Save'}
             </button>
             <button
               onClick={() => setIsEditing(false)}
               disabled={editSaving}
-              className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              className={secondaryBtn}
+              style={{ fontFamily: 'var(--font-mark)' }}
             >
-              キャンセル
+              Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* ステータスカウント */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* ステータスカウント（バッジ色は機能色として保持） */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {(['invited', 'attending', 'declined', 'checked_in'] as GuestStatus[]).map((s) => (
-          <div key={s} className="bg-white rounded-lg shadow-sm p-3 text-center">
-            <div className="text-2xl font-bold text-gray-800">{statusCounts[s] || 0}</div>
-            <div className={`text-xs font-medium mt-1 inline-block px-2 py-0.5 rounded-full ${STATUS_BADGE[s].color}`}>
+          <div
+            key={s}
+            className="bg-cream border-[0.5px] border-forest-30 p-4 text-center"
+          >
+            <div
+              className="text-3xl text-forest italic"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              {statusCounts[s] || 0}
+            </div>
+            <div
+              className={`text-xs font-medium mt-2 inline-block px-2 py-0.5 rounded-full ${STATUS_BADGE[s].color}`}
+            >
               {STATUS_BADGE[s].label}
             </div>
           </div>
         ))}
       </div>
 
-      {/* アクションボタン */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button onClick={() => router.push(`/dashboard/events/${eventId}/invite`)}
-          className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-          招待メール送信
+      {/* アクションボタン（招待=Primary、他=Secondary） */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        <button
+          onClick={() => router.push(`/dashboard/events/${eventId}/invite`)}
+          className={primaryBtn}
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Send Invitation
         </button>
-        <button onClick={() => router.push(`/dashboard/events/${eventId}/remind`)}
-          className="px-3 py-1.5 text-sm bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
-          リマインド送信
+        <button
+          onClick={() => router.push(`/dashboard/events/${eventId}/remind`)}
+          className={secondaryBtn}
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Send Reminder
         </button>
-        <button onClick={() => router.push(`/dashboard/events/${eventId}/checkin`)}
-          className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700">
-          入場状況
+        <button
+          onClick={() => router.push(`/dashboard/events/${eventId}/checkin`)}
+          className={secondaryBtn}
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Check-in Status
         </button>
-        <a href="/scan" target="_blank" rel="noopener noreferrer"
-          className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700 inline-flex items-center gap-1">
-          📷 受付スキャン
+        <a
+          href="/scan"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${secondaryBtn} inline-flex items-center gap-1`}
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          📷 Scan
         </a>
-        <button onClick={handleCsvExport}
-          className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700">
-          CSVエクスポート
+        <button
+          onClick={handleCsvExport}
+          className={secondaryBtn}
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Export CSV
         </button>
       </div>
 
       {/* ゲスト追加フォーム */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-        <h2 className="text-sm font-bold text-gray-700 mb-3">ゲスト追加</h2>
-        <div className="flex flex-col md:flex-row gap-2">
-          <input type="text" placeholder="名前 *" value={guestName} onChange={(e) => setGuestName(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800" />
-          <input type="email" placeholder="メール *" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800" />
-          <input type="text" placeholder="組織名（任意）" value={guestOrg} onChange={(e) => setGuestOrg(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800" />
-          <button onClick={handleAddGuest} disabled={addingGuest}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap">
-            {addingGuest ? '追加中...' : '追加'}
+      <div className="bg-cream border-[0.5px] border-forest-30 p-5 mb-4">
+        <h2
+          className="text-[10px] uppercase tracking-[0.22em] text-forest-60 mb-4"
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          Add Guest
+        </h2>
+        <div className="flex flex-col md:flex-row gap-3 md:items-end">
+          <input
+            type="text"
+            placeholder="名前 *"
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            className={`flex-1 ${inputBase} font-jp`}
+            style={{ fontFamily: 'var(--font-jp)' }}
+          />
+          <input
+            type="email"
+            placeholder="メール *"
+            value={guestEmail}
+            onChange={(e) => setGuestEmail(e.target.value)}
+            className={`flex-1 ${inputBase}`}
+          />
+          <input
+            type="text"
+            placeholder="組織名（任意）"
+            value={guestOrg}
+            onChange={(e) => setGuestOrg(e.target.value)}
+            className={`flex-1 ${inputBase} font-jp`}
+            style={{ fontFamily: 'var(--font-jp)' }}
+          />
+          <button
+            onClick={handleAddGuest}
+            disabled={addingGuest}
+            className={`${primaryBtn} whitespace-nowrap`}
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            {addingGuest ? 'Adding...' : 'Add'}
           </button>
         </div>
       </div>
 
       {/* ファイルアップロード（CSV / Excel） */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <h2 className="text-sm font-bold text-gray-700 mb-2">
-          ファイルインポート（CSV / Excel）
+      <div className="bg-cream border-[0.5px] border-forest-30 p-5 mb-8">
+        <h2
+          className="text-[10px] uppercase tracking-[0.22em] text-forest-60 mb-2"
+          style={{ fontFamily: 'var(--font-mark)' }}
+        >
+          File Import (CSV / Excel)
         </h2>
-        <p className="text-xs text-gray-500 mb-2">
-          列の順序: <strong>名前</strong>, <strong>メール</strong>, 組織名(任意)
+        <p
+          className="text-xs text-forest-60 mb-3 font-jp leading-relaxed"
+          style={{ fontFamily: 'var(--font-jp)' }}
+        >
+          列の順序: <strong className="text-forest">名前</strong>,{' '}
+          <strong className="text-forest">メール</strong>, 組織名(任意)
           <br />
           ※1行目がヘッダ（「名前」「メール」「name」等）の場合は自動スキップ
           <br />
@@ -497,50 +609,120 @@ export default function EventDetailPage() {
             type="file"
             accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             onChange={handleFileUpload}
-            className="text-sm text-gray-600"
+            className="text-sm text-forest-60"
           />
-          {csvUploading && <span className="text-sm text-gray-500">処理中...</span>}
+          {csvUploading && (
+            <span
+              className="text-sm text-forest-60 font-jp"
+              style={{ fontFamily: 'var(--font-jp)' }}
+            >
+              処理中...
+            </span>
+          )}
         </div>
         {csvResult && (
-          <p className={`text-sm mt-2 ${csvResult.startsWith('エラー') ? 'text-red-600' : 'text-green-600'}`}>
+          <p
+            className={`text-sm mt-3 font-jp ${
+              csvResult.startsWith('エラー') ? 'text-red-700' : 'text-forest'
+            }`}
+            style={{ fontFamily: 'var(--font-jp)' }}
+          >
             {csvResult}
           </p>
         )}
       </div>
 
       {/* ゲストテーブル */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-gray-700">ゲスト一覧（{guests.length}名）</h2>
+      <div className="bg-cream border-[0.5px] border-forest-30 overflow-hidden">
+        <div className="px-4 py-3 border-b-[0.5px] border-forest-30 flex items-center gap-2">
+          <h2
+            className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            Guest List
+          </h2>
+          <span
+            className="text-[10px] uppercase tracking-[0.22em] text-forest-60"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            ({guests.length})
+          </span>
         </div>
         {guests.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-8">ゲストがいません。上のフォームから追加してください。</p>
+          <p
+            className="text-sm text-forest-60 text-center py-10 font-jp"
+            style={{ fontFamily: 'var(--font-jp)' }}
+          >
+            ゲストがいません。上のフォームから追加してください。
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-mist">
                 <tr>
-                  <th className="text-left px-4 py-2 text-gray-600 font-medium">名前</th>
-                  <th className="text-left px-4 py-2 text-gray-600 font-medium">メール</th>
-                  <th className="text-left px-4 py-2 text-gray-600 font-medium hidden md:table-cell">組織</th>
-                  <th className="text-center px-4 py-2 text-gray-600 font-medium">ステータス</th>
-                  <th className="text-center px-4 py-2 text-gray-600 font-medium">操作</th>
+                  <th
+                    className="text-left px-4 py-2.5 text-forest-60 text-[10px] uppercase tracking-[0.22em]"
+                    style={{ fontFamily: 'var(--font-mark)' }}
+                  >
+                    Name
+                  </th>
+                  <th
+                    className="text-left px-4 py-2.5 text-forest-60 text-[10px] uppercase tracking-[0.22em]"
+                    style={{ fontFamily: 'var(--font-mark)' }}
+                  >
+                    Email
+                  </th>
+                  <th
+                    className="text-left px-4 py-2.5 text-forest-60 text-[10px] uppercase tracking-[0.22em] hidden md:table-cell"
+                    style={{ fontFamily: 'var(--font-mark)' }}
+                  >
+                    Organization
+                  </th>
+                  <th
+                    className="text-center px-4 py-2.5 text-forest-60 text-[10px] uppercase tracking-[0.22em]"
+                    style={{ fontFamily: 'var(--font-mark)' }}
+                  >
+                    Status
+                  </th>
+                  <th
+                    className="text-center px-4 py-2.5 text-forest-60 text-[10px] uppercase tracking-[0.22em]"
+                    style={{ fontFamily: 'var(--font-mark)' }}
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {guests.map((g) => (
-                  <tr key={g.id} className="border-t border-gray-50 hover:bg-gray-50">
-                    <td className="px-4 py-2 text-gray-800">{g.name}</td>
-                    <td className="px-4 py-2 text-gray-600">{g.email}</td>
-                    <td className="px-4 py-2 text-gray-600 hidden md:table-cell">{g.organization || '-'}</td>
-                    <td className="px-4 py-2 text-center">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[g.status].color}`}>
+                  <tr
+                    key={g.id}
+                    className="border-t-[0.5px] border-forest-30 hover:bg-mist transition-colors"
+                  >
+                    <td
+                      className="px-4 py-3 text-forest font-jp"
+                      style={{ fontFamily: 'var(--font-jp)' }}
+                    >
+                      {g.name}
+                    </td>
+                    <td className="px-4 py-3 text-forest-80">{g.email}</td>
+                    <td
+                      className="px-4 py-3 text-forest-60 hidden md:table-cell font-jp"
+                      style={{ fontFamily: 'var(--font-jp)' }}
+                    >
+                      {g.organization || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[g.status].color}`}
+                      >
                         {STATUS_BADGE[g.status].label}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-center">
-                      <button onClick={() => handleDeleteGuest(g)}
-                        className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => handleDeleteGuest(g)}
+                        className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      >
                         削除
                       </button>
                     </td>

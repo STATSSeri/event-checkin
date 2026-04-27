@@ -67,42 +67,42 @@ export async function POST(request: Request) {
       to: guest.email,
       subject: `「${event.name}」入場QRコード`,
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #059669, #10B981); padding: 30px; border-radius: 12px 12px 0 0; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">${event.name}</h1>
-            <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">入場QRコード</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
+          <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">
+            <p style="margin: 0 0 12px; opacity: 0.7; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;">Entry Pass</p>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 700; line-height: 1.4;">${event.name}</h1>
           </div>
 
-          <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-            <p style="color: #374151; margin-bottom: 20px;">
+          <div style="background: #F1E6D2; padding: 36px 30px; border-left: 0.5px solid rgba(31, 59, 47, 0.3); border-right: 0.5px solid rgba(31, 59, 47, 0.3);">
+            <p style="color: #1F3B2F; margin-bottom: 24px; font-weight: 700;">
               ${guest.name} 様
             </p>
 
-            <p style="color: #374151; line-height: 1.8;">
+            <p style="color: rgba(31, 59, 47, 0.8); line-height: 1.8;">
               ご出席のご回答ありがとうございます。<br>
               下記のQRコードが入場チケットとなります。
             </p>
 
-            <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
-              ${eventDate ? `<p style="margin: 4px 0; color: #374151;">📅 <strong>日時:</strong> ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}</p>` : ''}
-              ${event.venue ? `<p style="margin: 4px 0; color: #374151;">📍 <strong>会場:</strong> ${event.venue}</p>` : ''}
+            <div style="background: #ECEAE3; padding: 20px; margin: 24px 0;">
+              ${eventDate ? `<p style="margin: 4px 0; color: #1F3B2F;">📅 <strong>日時:</strong> ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}</p>` : ''}
+              ${event.venue ? `<p style="margin: 4px 0; color: #1F3B2F;">📍 <strong>会場:</strong> ${event.venue}</p>` : ''}
             </div>
 
-            <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f9fafb; border-radius: 12px;">
-              <img src="${qrImageUrl}" alt="入場QRコード" width="250" height="250" style="width: 250px; height: 250px; display: block; margin: 0 auto;" />
-              <p style="color: #059669; font-weight: bold; margin-top: 12px; font-size: 16px;">
+            <div style="text-align: center; margin: 36px 0; padding: 28px 20px; background: #ECEAE3;">
+              <img src="${qrImageUrl}" alt="入場QRコード" width="250" height="250" style="width: 250px; height: 250px; display: block; margin: 0 auto; background: #ffffff; padding: 12px;" />
+              <p style="color: #1F3B2F; font-weight: 700; margin-top: 16px; font-size: 14px; letter-spacing: 0.06em;">
                 このQRコードを受付でご提示ください
               </p>
             </div>
 
-            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            <p style="color: rgba(31, 59, 47, 0.6); font-size: 12px; text-align: center;">
               このQRコードは1回のみ有効です。スクリーンショットでの保存をお勧めします。
             </p>
           </div>
 
-          <div style="padding: 16px; text-align: center; border-radius: 0 0 12px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none;">
-            <p style="color: #9ca3af; font-size: 11px; margin: 0;">
-              イベント受付管理システム
+          <div style="padding: 20px; text-align: center; background: #ECEAE3; border: 0.5px solid rgba(31, 59, 47, 0.3); border-top: none;">
+            <p style="color: rgba(31, 59, 47, 0.6); font-size: 10px; margin: 0; letter-spacing: 0.22em; text-transform: uppercase;">
+              S/PASS · Event Reception System
             </p>
           </div>
         </div>

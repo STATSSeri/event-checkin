@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
+import { generateQRBuffer } from '@/lib/qr';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * 前日リマインド送信API
+ * - 出席確定（status='attending'）のゲストにのみ送信
+ * - QRは初回送信時と同じ checkin_token から生成（決定的）
+ * - チェックイン済の人には送らない（無意味＋誤解防止）
+ */
 export async function POST(request: Request) {
   try {
     const { eventId, guestIds } = await request.json();
@@ -16,7 +23,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 認可チェック: 呼び出し元が当該イベントの主催者か検証
+    // 認可チェック
     const auth = await verifyEventOwnership(eventId);
     if (!auth) {
       return NextResponse.json(
@@ -27,7 +34,6 @@ export async function POST(request: Request) {
 
     const supabase = createServiceClient();
 
-    // イベント情報を取得
     const { data: event, error: eventError } = await supabase
       .from('events')
       .select('*')
@@ -41,29 +47,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // ゲスト情報を取得
+    // 出席確定者のみ取得（attendingステータス・指定ID・このイベント所属）
+    // checked_inの人は除外（既に入場済みのため不要）
     const { data: guests, error: guestsError } = await supabase
       .from('guests')
       .select('*')
-      .in('id', guestIds);
+      .in('id', guestIds)
+      .eq('event_id', eventId)
+      .eq('status', 'attending');
 
     if (guestsError || !guests?.length) {
       return NextResponse.json(
-        { error: 'ゲストが見つかりません' },
+        { error: '対象ゲストが見つかりません（出席確定者のみ送信可能です）' },
         { status: 404 }
       );
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    let sent = 0;
-    let errors = 0;
+    let success = 0;
+    let failed = 0;
 
-    // 各ゲストにリマインドメールを送信
     for (const guest of guests) {
       try {
-        const rsvpUrl = `${appUrl}/rsvp/${guest.rsvp_token}`;
+        // QRは初回QRメールと同じ checkin_token から生成（同一QR保証）
+        const qrImageUrl = `${appUrl}/api/qr/${guest.checkin_token}`;
+        const checkinUrl = `${appUrl}/scan?token=${guest.checkin_token}`;
+        const qrBuffer = await generateQRBuffer(checkinUrl);
 
-        // イベント日時のフォーマット
         const eventDate = event.event_date
           ? new Date(event.event_date).toLocaleDateString('ja-JP', {
               year: 'numeric',
@@ -73,24 +83,14 @@ export async function POST(request: Request) {
             })
           : '';
 
-        // 2回目以降のリマインドは件名・本文を変える（Gmailのスレッド折りたたみ回避）
-        const isResend = !!guest.reminder_sent_at;
-        const subject = isResend
-          ? `【再リマインド】「${event.name}」出欠について`
-          : `【リマインド】「${event.name}」出欠のご確認`;
-        const eyebrow = isResend ? 'Final Reminder' : 'Reminder';
-        const bodyMessage = isResend
-          ? `「${event.name}」の出欠について、再度ご案内申し上げます。<br>お忙しいところ恐縮ですが、下記ボタンよりご回答いただけますと幸いです。`
-          : `「${event.name}」の出欠について、まだご回答をいただいておりません。<br>お手数ですが、下記ボタンよりご回答をお願いいたします。`;
-
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+          from: process.env.RESEND_FROM_EMAIL || 'noreply@spass.tokyo',
           to: guest.email,
-          subject,
+          subject: `【ご来場前のご案内】「${event.name}」`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
               <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">
-                <p style="margin: 0 0 12px; opacity: 0.7; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;">${eyebrow}</p>
+                <p style="margin: 0 0 12px; opacity: 0.7; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;">Final Notice</p>
                 <h1 style="margin: 0; font-size: 24px; font-weight: 700; line-height: 1.4;">${event.name}</h1>
               </div>
 
@@ -100,23 +100,26 @@ export async function POST(request: Request) {
                 </p>
 
                 <p style="color: rgba(31, 59, 47, 0.8); line-height: 1.8;">
-                  ${bodyMessage}
+                  ご来場が間近となりましたので、改めてご案内申し上げます。<br>
+                  当日は受付にて下記のQRコードをご提示ください。
                 </p>
 
                 <div style="background: #ECEAE3; padding: 20px; margin: 24px 0;">
                   ${eventDate ? `<p style="margin: 4px 0; color: #1F3B2F;">📅 <strong>日時:</strong> ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}</p>` : ''}
                   ${event.venue ? `<p style="margin: 4px 0; color: #1F3B2F;">📍 <strong>会場:</strong> ${event.venue}</p>` : ''}
+                  ${event.description ? `<div style="margin-top: 14px; padding-top: 14px; border-top: 0.5px solid rgba(31, 59, 47, 0.3); color: rgba(31, 59, 47, 0.8); font-size: 14px; line-height: 1.7;">${event.description}</div>` : ''}
                 </div>
 
-                <div style="text-align: center; margin: 36px 0;">
-                  <a href="${rsvpUrl}"
-                     style="display: inline-block; background: #1F3B2F; color: #F1E6D2; text-decoration: none; padding: 14px 40px; font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;">
-                    Reply / 出欠を回答する
-                  </a>
+                <div style="text-align: center; margin: 36px 0; padding: 28px 20px; background: #ECEAE3;">
+                  <img src="${qrImageUrl}" alt="入場QRコード" width="250" height="250" style="width: 250px; height: 250px; display: block; margin: 0 auto; background: #ffffff; padding: 12px;" />
+                  <p style="color: #1F3B2F; font-weight: 700; margin-top: 16px; font-size: 14px; letter-spacing: 0.06em;">
+                    このQRコードを受付でご提示ください
+                  </p>
                 </div>
 
-                <p style="color: rgba(31, 59, 47, 0.6); font-size: 12px; text-align: center;">
-                  既にご回答済みの場合は、このメールを無視してください。
+                <p style="color: rgba(31, 59, 47, 0.6); font-size: 12px; text-align: center; line-height: 1.6;">
+                  ※こちらのQRコードは出欠ご回答時にお送りしたものと同じです。<br>
+                  以前のメールに添付されたQRコードもそのままご利用いただけます。
                 </p>
               </div>
 
@@ -127,24 +130,28 @@ export async function POST(request: Request) {
               </div>
             </div>
           `,
+          attachments: [
+            {
+              filename: 'qr-ticket.png',
+              content: qrBuffer,
+              contentType: 'image/png',
+            },
+          ],
+          headers: {
+            'X-Entity-Ref-ID': `day-before-${guest.id}-${Date.now()}`,
+          },
         });
 
-        // リマインド送信日時を更新
-        await supabase
-          .from('guests')
-          .update({ reminder_sent_at: new Date().toISOString() })
-          .eq('id', guest.id);
-
-        sent++;
+        success++;
       } catch (err) {
-        console.error(`リマインドメール送信失敗 (${guest.email}):`, err);
-        errors++;
+        console.error(`前日リマインド送信失敗 (${guest.email}):`, err);
+        failed++;
       }
     }
 
-    return NextResponse.json({ sent, errors });
+    return NextResponse.json({ success, failed });
   } catch (err) {
-    console.error('リマインドメール送信エラー:', err);
+    console.error('前日リマインド送信エラー:', err);
     return NextResponse.json(
       { error: '送信処理中にエラーが発生しました' },
       { status: 500 }

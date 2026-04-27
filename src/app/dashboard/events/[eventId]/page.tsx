@@ -493,6 +493,12 @@ export default function EventDetailPage() {
           リマインド送信
         </button>
         <button
+          onClick={() => router.push(`/dashboard/events/${eventId}/day-before`)}
+          className="px-3 py-1.5 text-sm bg-amber-700 text-white rounded-md hover:bg-amber-800"
+        >
+          前日リマインド
+        </button>
+        <button
           onClick={() => router.push(`/dashboard/events/${eventId}/checkin`)}
           className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
         >

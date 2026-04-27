@@ -143,12 +143,12 @@ export default function RemindPage() {
                 { key: 'all', label: 'すべて', count: guests.length },
                 {
                   key: 'never_reminded',
-                  label: 'まだ送っていない人',
+                  label: 'リマインド未送信',
                   count: guests.filter((g) => !g.reminder_sent_at).length,
                 },
                 {
                   key: 'already_reminded',
-                  label: '一度送った人',
+                  label: '一度リマインド済み',
                   count: guests.filter((g) => !!g.reminder_sent_at).length,
                 },
               ] as const

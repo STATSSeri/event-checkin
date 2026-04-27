@@ -5,12 +5,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event, Guest, GuestStatus } from '@/types';
 
-const STATUS_BADGE: Record<GuestStatus, { label: string; color: string }> = {
+// 表示用ステータス: DB上は status='invited' + invitation_sent_at IS NULL の状態を
+// 「招待メール未送信(pending)」として表示し分ける
+type DisplayStatus = 'pending' | GuestStatus;
+
+const STATUS_BADGE: Record<DisplayStatus, { label: string; color: string }> = {
+  pending: { label: '招待メール未送信', color: 'bg-orange-50 text-orange-700 border border-orange-200' },
   invited: { label: '招待済', color: 'bg-gray-100 text-gray-700' },
   attending: { label: '出席', color: 'bg-blue-100 text-blue-700' },
   declined: { label: '欠席', color: 'bg-red-100 text-red-700' },
   checked_in: { label: '入場済', color: 'bg-green-100 text-green-700' },
 };
+
+// ゲストの実際のDB値から表示用ステータスを算出
+function getDisplayStatus(g: Guest): DisplayStatus {
+  if (g.status === 'invited' && !g.invitation_sent_at) {
+    return 'pending';
+  }
+  return g.status;
+}
 
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -53,10 +66,11 @@ export default function EventDetailPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // ステータス別カウント
+  // ステータス別カウント（表示用ステータスベース）
   const statusCounts = guests.reduce(
     (acc, g) => {
-      acc[g.status] = (acc[g.status] || 0) + 1;
+      const ds = getDisplayStatus(g);
+      acc[ds] = (acc[ds] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>
@@ -308,7 +322,7 @@ export default function EventDetailPage() {
   const handleCsvExport = () => {
     const header = '名前,メール,組織,ステータス,チェックイン時刻';
     const body = guests.map((g) =>
-      [g.name, g.email, g.organization || '', STATUS_BADGE[g.status].label, g.checked_in_at || ''].join(',')
+      [g.name, g.email, g.organization || '', STATUS_BADGE[getDisplayStatus(g)].label, g.checked_in_at || ''].join(',')
     );
     const csv = [header, ...body].join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -440,9 +454,9 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      {/* ステータスカウント（元のデザインに復元：白背景＋太字数字＋色付きバッジ） */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {(['invited', 'attending', 'declined', 'checked_in'] as GuestStatus[]).map((s) => (
+      {/* ステータスカウント（招待メール未送信を含む5区分） */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        {(['pending', 'invited', 'attending', 'declined', 'checked_in'] as DisplayStatus[]).map((s) => (
           <div
             key={s}
             className="bg-white rounded-lg shadow-sm p-3 text-center"
@@ -610,11 +624,16 @@ export default function EventDetailPage() {
                       {g.organization || '-'}
                     </td>
                     <td className="px-4 py-2 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[g.status].color}`}
-                      >
-                        {STATUS_BADGE[g.status].label}
-                      </span>
+                      {(() => {
+                        const ds = getDisplayStatus(g);
+                        return (
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[ds].color}`}
+                          >
+                            {STATUS_BADGE[ds].label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-2 text-center">
                       <button

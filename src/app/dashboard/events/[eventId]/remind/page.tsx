@@ -18,6 +18,8 @@ export default function RemindPage() {
   const [result, setResult] = useState<{ success: number; failed: number } | null>(null);
 
   const fetchData = useCallback(async () => {
+    // リマインド対象は「招待メール送信済み」かつ「未回答」の人のみ
+    // （まだ招待を送ってない人にリマインドは送れない）
     const [eventRes, guestsRes] = await Promise.all([
       supabase.from('events').select('*').eq('id', eventId).single(),
       supabase
@@ -25,6 +27,7 @@ export default function RemindPage() {
         .select('*')
         .eq('event_id', eventId)
         .eq('status', 'invited')
+        .not('invitation_sent_at', 'is', null)
         .order('created_at', { ascending: true }),
     ]);
     setEvent(eventRes.data);

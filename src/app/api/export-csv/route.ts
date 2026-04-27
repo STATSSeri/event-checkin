@@ -3,13 +3,23 @@ import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
 import type { GuestStatus } from '@/types';
 
-// ステータスの日本語マッピング
-const statusMap: Record<GuestStatus, string> = {
-  invited: '未回答',
+// ステータスの日本語マッピング（招待メール未送信を含む5区分）
+type DisplayStatus = 'pending' | GuestStatus;
+const statusMap: Record<DisplayStatus, string> = {
+  pending: '招待メール未送信',
+  invited: '招待済',
   attending: '出席',
   declined: '欠席',
-  checked_in: 'チェックイン済',
+  checked_in: '入場済',
 };
+
+// ゲストの実際のDB値から表示用ステータスを算出
+function getDisplayStatus(guest: { status: string; invitation_sent_at: string | null }): DisplayStatus {
+  if (guest.status === 'invited' && !guest.invitation_sent_at) {
+    return 'pending';
+  }
+  return guest.status as GuestStatus;
+}
 
 // 日時フォーマット
 function formatDateTime(dateStr: string | null): string {
@@ -78,11 +88,12 @@ export async function GET(request: Request) {
     // CSV生成
     const header = '名前,メール,所属,ステータス,回答日時,チェックイン日時';
     const rows = (guests || []).map((guest) => {
+      const ds = getDisplayStatus(guest);
       return [
         escapeCsv(guest.name || ''),
         escapeCsv(guest.email || ''),
         escapeCsv(guest.organization || ''),
-        escapeCsv(statusMap[guest.status as GuestStatus] || guest.status),
+        escapeCsv(statusMap[ds] || guest.status),
         escapeCsv(formatDateTime(guest.rsvp_responded_at)),
         escapeCsv(formatDateTime(guest.checked_in_at)),
       ].join(',');

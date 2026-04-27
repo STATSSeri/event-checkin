@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* S/PASS Design System tokens
+   LP（spass.tokyo）と同じ色・タイポグラフィをサービス本体でも使用 */
+:root {
+  --color-forest: #1F3B2F;
+  --color-forest-80: rgba(31, 59, 47, 0.8);
+  --color-forest-60: rgba(31, 59, 47, 0.6);
+  --color-forest-30: rgba(31, 59, 47, 0.3);
+  --color-cream: #F1E6D2;
+  --color-mist: #ECEAE3;
+}
+
+html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-forest);
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 和文は Noto Sans JP の Bold (700) を既定にする
+   LP と同じ可読性ポリシー */
+.font-jp,
+[style*="--font-jp"] {
+  font-weight: 700;
+}
+
+::selection {
+  background: var(--color-forest);
+  color: var(--color-cream);
 }

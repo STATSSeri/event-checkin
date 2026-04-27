@@ -27,13 +27,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">
-          イベント受付管理
-        </h1>
-        <p className="text-center text-gray-500 text-sm mb-8">主催者ログイン</p>
+        {/* S/PASS ワードマーク（LPと同じFuturaスタイル） */}
+        <div className="text-center mb-10">
+          <h1
+            className="text-5xl text-forest tracking-[0.32em] mb-4"
+            style={{
+              fontFamily: 'var(--font-mark)',
+              fontWeight: 700,
+              paddingLeft: '0.32em', // tracking分の右ズレ補正
+            }}
+          >
+            S/PASS
+          </h1>
+          <p
+            className="text-[10px] uppercase tracking-[0.28em] text-forest-60"
+            style={{ fontFamily: 'var(--font-mark)' }}
+          >
+            Event Reception System
+          </p>
+          <div className="mx-auto mt-6 mb-5 w-8 h-px bg-forest-30" />
+          <p className="text-xs text-forest-60 tracking-[0.06em]">
+            ブランドのための、招待と受付。
+          </p>
+        </div>
 
+        {/* フォーム（読みやすさ重視で枠付き） */}
         <form
           onSubmit={handleLogin}
           className="bg-white rounded-lg shadow-md p-6 space-y-4"
@@ -51,7 +71,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest text-gray-900"
             />
           </div>
           <div>
@@ -67,19 +87,34 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest text-gray-900"
             />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
+            className="w-full py-2.5 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
           >
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
+
+        {/* サポート文言 */}
+        <p className="text-center text-xs text-forest-60 mt-6 leading-relaxed">
+          ログインできない場合は
+          <br />
+          運営までお問い合わせください
+        </p>
       </div>
+
+      {/* 小フッター */}
+      <p
+        className="text-[10px] uppercase tracking-[0.25em] text-forest-60 mt-12"
+        style={{ fontFamily: 'var(--font-mark)' }}
+      >
+        © 2026 Stats Corporation
+      </p>
     </div>
   );
 }

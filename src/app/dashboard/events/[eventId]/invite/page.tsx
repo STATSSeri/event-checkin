@@ -92,106 +92,71 @@ export default function InvitePage() {
     <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
       <button
         onClick={() => router.push(`/dashboard/events/${eventId}`)}
-        className="text-[10px] uppercase tracking-[0.22em] text-forest-60 hover:text-forest mb-6 inline-block transition-colors"
-        style={{ fontFamily: 'var(--font-mark)' }}
+        className="text-sm text-blue-600 hover:underline mb-4 inline-block"
       >
-        &larr; Back to Event
+        &larr; イベント詳細に戻る
       </button>
 
-      <h1
-        className="text-2xl md:text-3xl text-forest italic mb-1"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        Send Invitation
-      </h1>
-      <p
-        className="text-sm text-forest-60 mb-6 font-jp"
-        style={{ fontFamily: 'var(--font-jp)' }}
-      >
-        {event?.name}
-      </p>
+      <h1 className="text-xl font-bold text-gray-800 mb-1">招待メール送信</h1>
+      <p className="text-sm text-gray-500 mb-6">{event?.name}</p>
 
       {result && (
-        <div
-          className="bg-mist border-[0.5px] border-forest-30 p-3 mb-4 text-sm text-forest font-jp"
-          style={{ fontFamily: 'var(--font-jp)' }}
-        >
-          送信完了: 成功 {result.success}件{result.failed > 0 && `、失敗 ${result.failed}件`}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-700">
+          送信完了: 成功 {result.success}件
+          {result.failed > 0 && `、失敗 ${result.failed}件`}
         </div>
       )}
 
       {guests.length === 0 ? (
-        <div className="bg-cream border-[0.5px] border-forest-30 p-8 text-center">
-          <p
-            className="text-forest-60 text-sm font-jp"
-            style={{ fontFamily: 'var(--font-jp)' }}
-          >
-            未送信の招待対象ゲストがいません
-          </p>
-          <p
-            className="text-xs text-forest-60 mt-1 font-jp"
-            style={{ fontFamily: 'var(--font-jp)' }}
-          >
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+          <p className="text-gray-500">未送信の招待対象ゲストがいません</p>
+          <p className="text-xs text-gray-400 mt-1">
             全てのゲストに招待メールが送信済みか、ゲストがまだ追加されていません
           </p>
         </div>
       ) : (
         <>
           {/* 操作バー */}
-          <div className="flex items-center justify-between bg-mist border-[0.5px] border-forest-30 p-3 mb-4">
-            <label
-              className="flex items-center gap-2 text-sm text-forest cursor-pointer font-jp"
-              style={{ fontFamily: 'var(--font-jp)' }}
-            >
+          <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-3 mb-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={selected.size === guests.length && guests.length > 0}
                 onChange={toggleAll}
-                className="accent-forest"
+                className="rounded"
               />
               全て選択（{guests.length}名）
             </label>
             <button
               onClick={handleSend}
               disabled={sending || selected.size === 0}
-              className="px-4 py-2 text-[11px] uppercase tracking-[0.22em] bg-forest text-cream hover:opacity-90 disabled:opacity-40 transition-opacity"
-              style={{ fontFamily: 'var(--font-mark)' }}
+              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
             >
-              {sending ? 'Sending...' : `Send to ${selected.size}`}
+              {sending ? '送信中...' : `${selected.size}名に招待メール送信`}
             </button>
           </div>
 
           {/* ゲストリスト */}
-          <div className="bg-cream border-[0.5px] border-forest-30 overflow-hidden">
-            {guests.map((g, i) => (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            {guests.map((g) => (
               <label
                 key={g.id}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-mist transition-colors cursor-pointer ${
-                  i > 0 ? 'border-t-[0.5px] border-forest-30' : ''
-                }`}
+                className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
               >
                 <input
                   type="checkbox"
                   checked={selected.has(g.id)}
                   onChange={() => toggleOne(g.id)}
-                  className="accent-forest"
+                  className="rounded"
                 />
                 <div className="flex-1 min-w-0">
-                  <div
-                    className="text-sm text-forest truncate font-jp"
-                    style={{ fontFamily: 'var(--font-jp)' }}
-                  >
+                  <div className="text-sm font-medium text-gray-800 truncate">
                     {g.name}
                   </div>
-                  <div className="text-xs text-forest-60 truncate">
-                    {g.email}
-                  </div>
+                  <div className="text-xs text-gray-500 truncate">{g.email}</div>
                 </div>
                 {g.organization && (
-                  <span
-                    className="text-xs text-forest-60 hidden md:inline font-jp"
-                    style={{ fontFamily: 'var(--font-jp)' }}
-                  >
+                  <span className="text-xs text-gray-400 hidden md:inline">
                     {g.organization}
                   </span>
                 )}

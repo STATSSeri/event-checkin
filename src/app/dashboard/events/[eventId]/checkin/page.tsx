@@ -94,131 +94,93 @@ export default function CheckinPage() {
     <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
       <button
         onClick={() => router.push(`/dashboard/events/${eventId}`)}
-        className="text-[10px] uppercase tracking-[0.22em] text-forest-60 hover:text-forest mb-6 inline-block transition-colors"
-        style={{ fontFamily: 'var(--font-mark)' }}
+        className="text-sm text-blue-600 hover:underline mb-4 inline-block"
       >
-        &larr; Back to Event
+        &larr; イベント詳細に戻る
       </button>
 
-      <h1
-        className="text-2xl md:text-3xl text-forest italic mb-1"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        Check-in Status
-      </h1>
-      <p
-        className="text-sm text-forest-60 mb-6 font-jp"
-        style={{ fontFamily: 'var(--font-jp)' }}
-      >
-        {event?.name}
-      </p>
+      <h1 className="text-xl font-bold text-gray-800 mb-1">入場状況</h1>
+      <p className="text-sm text-gray-500 mb-6">{event?.name}</p>
 
       {/* カウンター & プログレスバー */}
-      <div className="bg-cream border-[0.5px] border-forest-30 p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="text-center mb-4">
-          {/* 入場者数は機能色（green）を保持：意味伝達のため */}
-          <span className="text-5xl text-green-600 italic" style={{ fontFamily: 'var(--font-display)' }}>
+          <span className="text-4xl font-bold text-green-600">
             {checkedInCount}
           </span>
-          <span className="text-2xl text-forest-30 mx-2">/</span>
-          <span
-            className="text-2xl text-forest-60 italic"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            {totalTarget}
-          </span>
-          <span
-            className="text-xs text-forest-60 ml-3 uppercase tracking-[0.22em]"
-            style={{ fontFamily: 'var(--font-mark)' }}
-          >
-            Checked In
-          </span>
+          <span className="text-2xl text-gray-400 mx-2">/</span>
+          <span className="text-2xl text-gray-600">{totalTarget}</span>
+          <span className="text-sm text-gray-500 ml-2">名入場</span>
         </div>
-        <div className="w-full bg-mist h-3 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
           <div
-            className="bg-green-500 h-3 transition-all duration-500"
+            className="bg-green-500 h-4 rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        <div className="text-center text-xs text-forest-60 mt-2">
+        <div className="text-center text-sm text-gray-500 mt-2">
           {progressPercent}%
         </div>
       </div>
 
       {/* ソートボタン & 更新ボタン */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
           <button
             onClick={() => setSortMode('checkin_time')}
-            className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] transition-colors ${
+            className={`px-3 py-1.5 text-sm rounded-md ${
               sortMode === 'checkin_time'
-                ? 'bg-forest text-cream'
-                : 'border-[0.5px] border-forest-30 text-forest-60 hover:border-forest hover:text-forest'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
-            style={{ fontFamily: 'var(--font-mark)' }}
           >
-            By Time
+            チェックイン時間順
           </button>
           <button
             onClick={() => setSortMode('name')}
-            className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] transition-colors ${
+            className={`px-3 py-1.5 text-sm rounded-md ${
               sortMode === 'name'
-                ? 'bg-forest text-cream'
-                : 'border-[0.5px] border-forest-30 text-forest-60 hover:border-forest hover:text-forest'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
-            style={{ fontFamily: 'var(--font-mark)' }}
           >
-            By Name
+            名前順
           </button>
         </div>
         <button
           onClick={fetchData}
-          className="px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] border-[0.5px] border-forest-30 text-forest-60 hover:border-forest hover:text-forest transition-colors"
-          style={{ fontFamily: 'var(--font-mark)' }}
+          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
         >
-          Refresh
+          更新
         </button>
       </div>
 
       {/* ゲストリスト */}
       {sortedGuests.length === 0 ? (
-        <div className="bg-cream border-[0.5px] border-forest-30 p-8 text-center">
-          <p
-            className="text-forest-60 text-sm font-jp"
-            style={{ fontFamily: 'var(--font-jp)' }}
-          >
-            出席予定・入場済のゲストがいません
-          </p>
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+          <p className="text-gray-500">出席予定・入場済のゲストがいません</p>
         </div>
       ) : (
-        <div className="bg-cream border-[0.5px] border-forest-30 overflow-hidden">
-          {sortedGuests.map((g, i) => (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {sortedGuests.map((g) => (
             <div
               key={g.id}
-              className={`flex items-center gap-3 px-4 py-3 ${
-                i > 0 ? 'border-t-[0.5px] border-forest-30' : ''
-              }`}
+              className="flex items-center gap-3 px-4 py-3 border-b border-gray-50"
             >
-              {/* ステータスドット：機能色を保持 */}
+              {/* ステータスドット */}
               <div
                 className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                  g.status === 'checked_in' ? 'bg-green-500' : 'bg-forest-30'
+                  g.status === 'checked_in' ? 'bg-green-500' : 'bg-gray-300'
                 }`}
               />
 
               {/* ゲスト情報 */}
               <div className="flex-1 min-w-0">
-                <div
-                  className="text-sm text-forest truncate font-jp"
-                  style={{ fontFamily: 'var(--font-jp)' }}
-                >
+                <div className="text-sm font-medium text-gray-800 truncate">
                   {g.name}
                 </div>
                 {g.organization && (
-                  <div
-                    className="text-xs text-forest-60 truncate font-jp"
-                    style={{ fontFamily: 'var(--font-jp)' }}
-                  >
+                  <div className="text-xs text-gray-400 truncate">
                     {g.organization}
                   </div>
                 )}
@@ -234,16 +196,11 @@ export default function CheckinPage() {
                     })}
                   </div>
                 ) : (
-                  <div
-                    className="text-xs text-forest-60 font-jp"
-                    style={{ fontFamily: 'var(--font-jp)' }}
-                  >
-                    未入場
-                  </div>
+                  <div className="text-xs text-gray-400">未入場</div>
                 )}
               </div>
 
-              {/* 取消ボタン：機能色を保持 */}
+              {/* 取消ボタン */}
               {g.status === 'checked_in' && (
                 <button
                   onClick={() => handleUndoCheckin(g)}

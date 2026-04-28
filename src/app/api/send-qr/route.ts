@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { generateQRBuffer } from '@/lib/qr';
+import { getFromAddress, REPLY_TO, PLAIN_FOOTER } from '@/lib/email';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -61,11 +62,26 @@ export async function POST(request: Request) {
         })
       : '';
 
+    // プレーンテキスト版（HTMLが見れない環境向け＋スパムスコア改善）
+    const plainText = `${guest.name} 様
+
+ご出席のご回答ありがとうございます。
+入場QRコードをお送りいたします。
+
+【イベント詳細】
+${eventDate ? `日時: ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}\n` : ''}${event.venue ? `会場: ${event.venue}\n` : ''}
+※入場用のQRコード画像はこのメール本文（HTML）または添付ファイル（qr-ticket.png）でご確認ください。
+※QRコードは1回のみ有効です。スクリーンショットでの保存をお勧めします。
+
+${PLAIN_FOOTER}`;
+
     // QRコード付きメール送信
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      from: getFromAddress(),
+      replyTo: REPLY_TO,
       to: guest.email,
       subject: `「${event.name}」入場QRコード`,
+      text: plainText,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
           <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">

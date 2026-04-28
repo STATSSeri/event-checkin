@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
 import { generateQRBuffer } from '@/lib/qr';
+import { getFromAddress, REPLY_TO, htmlToPlainText, PLAIN_FOOTER } from '@/lib/email';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -83,10 +84,25 @@ export async function POST(request: Request) {
             })
           : '';
 
+        // プレーンテキスト版
+        const plainText = `${guest.name} 様
+
+ご来場が間近となりましたので、改めてご案内申し上げます。
+当日は受付にて下記のQRコードをご提示ください。
+
+【イベント詳細】
+${eventDate ? `日時: ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}\n` : ''}${event.venue ? `会場: ${event.venue}\n` : ''}${event.description ? `詳細: ${htmlToPlainText(event.description)}\n` : ''}
+※入場用のQRコード画像はこのメール本文（HTML）または添付ファイル（qr-ticket.png）でご確認ください。
+※こちらのQRコードは出欠ご回答時にお送りしたものと同じです。以前のメールに添付されたQRコードもそのままご利用いただけます。
+
+${PLAIN_FOOTER}`;
+
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@spass.tokyo',
+          from: getFromAddress(),
+          replyTo: REPLY_TO,
           to: guest.email,
           subject: `【ご来場前のご案内】「${event.name}」`,
+          text: plainText,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
               <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">

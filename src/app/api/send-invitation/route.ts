@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
+import { getFromAddress, REPLY_TO, htmlToPlainText, PLAIN_FOOTER } from '@/lib/email';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -55,8 +56,8 @@ export async function POST(request: Request) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    let sent = 0;
-    let errors = 0;
+    let success = 0;
+    let failed = 0;
 
     // 各ゲストに招待メールを送信
     for (const guest of guests) {
@@ -73,10 +74,24 @@ export async function POST(request: Request) {
             })
           : '';
 
+        // プレーンテキスト版（HTMLが見れない環境向け＋スパムスコア改善）
+        const plainText = `${guest.name} 様
+
+このたびは「${event.name}」にご招待申し上げます。
+
+【イベント詳細】
+${eventDate ? `日時: ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}\n` : ''}${event.venue ? `会場: ${event.venue}\n` : ''}${event.description ? `詳細: ${htmlToPlainText(event.description)}\n` : ''}
+下記URLより出欠のご回答をお願いいたします:
+${rsvpUrl}
+
+${PLAIN_FOOTER}`;
+
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+          from: getFromAddress(),
+          replyTo: REPLY_TO,
           to: guest.email,
           subject: `「${event.name}」へのご招待`,
+          text: plainText,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
               <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">
@@ -130,14 +145,14 @@ export async function POST(request: Request) {
           .update({ invitation_sent_at: new Date().toISOString() })
           .eq('id', guest.id);
 
-        sent++;
+        success++;
       } catch (err) {
         console.error(`招待メール送信失敗 (${guest.email}):`, err);
-        errors++;
+        failed++;
       }
     }
 
-    return NextResponse.json({ sent, errors });
+    return NextResponse.json({ success, failed });
   } catch (err) {
     console.error('招待メール送信エラー:', err);
     return NextResponse.json(

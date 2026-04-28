@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
+import { getFromAddress, REPLY_TO, PLAIN_FOOTER } from '@/lib/email';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -55,8 +56,8 @@ export async function POST(request: Request) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    let sent = 0;
-    let errors = 0;
+    let success = 0;
+    let failed = 0;
 
     // 各ゲストにリマインドメールを送信
     for (const guest of guests) {
@@ -82,11 +83,28 @@ export async function POST(request: Request) {
         const bodyMessage = isResend
           ? `「${event.name}」の出欠について、再度ご案内申し上げます。<br>お忙しいところ恐縮ですが、下記ボタンよりご回答いただけますと幸いです。`
           : `「${event.name}」の出欠について、まだご回答をいただいておりません。<br>お手数ですが、下記ボタンよりご回答をお願いいたします。`;
+        const plainBodyMessage = isResend
+          ? `「${event.name}」の出欠について、再度ご案内申し上げます。お忙しいところ恐縮ですが、下記URLよりご回答いただけますと幸いです。`
+          : `「${event.name}」の出欠について、まだご回答をいただいておりません。お手数ですが、下記URLよりご回答をお願いいたします。`;
+
+        // プレーンテキスト版
+        const plainText = `${guest.name} 様
+
+${plainBodyMessage}
+
+【イベント詳細】
+${eventDate ? `日時: ${eventDate}${event.event_time ? ` ${event.event_time}` : ''}\n` : ''}${event.venue ? `会場: ${event.venue}\n` : ''}
+出欠回答URL:
+${rsvpUrl}
+
+${PLAIN_FOOTER}`;
 
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+          from: getFromAddress(),
+          replyTo: REPLY_TO,
           to: guest.email,
           subject,
+          text: plainText,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #F1E6D2;">
               <div style="background: #1F3B2F; padding: 40px 30px; text-align: center; color: #F1E6D2;">
@@ -135,14 +153,14 @@ export async function POST(request: Request) {
           .update({ reminder_sent_at: new Date().toISOString() })
           .eq('id', guest.id);
 
-        sent++;
+        success++;
       } catch (err) {
         console.error(`リマインドメール送信失敗 (${guest.email}):`, err);
-        errors++;
+        failed++;
       }
     }
 
-    return NextResponse.json({ sent, errors });
+    return NextResponse.json({ success, failed });
   } catch (err) {
     console.error('リマインドメール送信エラー:', err);
     return NextResponse.json(

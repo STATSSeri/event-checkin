@@ -3,6 +3,10 @@ import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
 import type { GuestStatus } from '@/types';
 
+// このルートは request.url を使うため動的ルートとして明示
+// Next.js のビルドログから "Dynamic server usage" 警告を消すおまじない
+export const dynamic = 'force-dynamic';
+
 // ステータスの日本語マッピング（招待メール未送信を含む5区分）
 type DisplayStatus = 'pending' | GuestStatus;
 const statusMap: Record<DisplayStatus, string> = {

@@ -8,6 +8,9 @@ export interface Event {
   event_date: string | null;
   event_time: string | null;
   venue: string | null;
+  /** 送信元アドレス（任意）。null時はデフォルト送信元（環境変数）を使用。
+   *  形式: "events@example.com" or "表示名 <events@example.com>" */
+  from_email: string | null;
   created_at: string;
 }
 

@@ -6,9 +6,23 @@
 /**
  * 表示名つき From アドレス
  * 例: "S/PASS <noreply@spass.tokyo>"
+ *
+ * イベント別の送信元（events.from_email）が指定されている場合はそれを優先：
+ * - "events@brand.com" 形式 → "S/PASS <events@brand.com>" に整形
+ * - "ブランド名 <events@brand.com>" 形式 → そのまま使用
+ *
  * Display name があるとスパムスコアが下がる傾向がある
  */
-export function getFromAddress(): string {
+export function getFromAddress(eventFromEmail?: string | null): string {
+  if (eventFromEmail) {
+    const trimmed = eventFromEmail.trim();
+    // 既に "Display Name <email>" 形式なら手を加えない
+    if (trimmed.includes('<') && trimmed.includes('>')) {
+      return trimmed;
+    }
+    // 単純なメールアドレスならデフォルトの表示名を付与
+    return `S/PASS <${trimmed}>`;
+  }
   const email = process.env.RESEND_FROM_EMAIL || 'noreply@spass.tokyo';
   return `S/PASS <${email}>`;
 }

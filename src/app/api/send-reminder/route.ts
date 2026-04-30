@@ -100,7 +100,7 @@ ${rsvpUrl}
 ${PLAIN_FOOTER}`;
 
         await resend.emails.send({
-          from: getFromAddress(),
+          from: getFromAddress(event.from_email),
           replyTo: REPLY_TO,
           to: guest.email,
           subject,

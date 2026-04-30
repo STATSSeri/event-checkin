@@ -77,7 +77,7 @@ ${PLAIN_FOOTER}`;
 
     // QRコード付きメール送信
     await resend.emails.send({
-      from: getFromAddress(),
+      from: getFromAddress(event.from_email),
       replyTo: REPLY_TO,
       to: guest.email,
       subject: `「${event.name}」入場QRコード`,

@@ -98,7 +98,7 @@ ${eventDate ? `日時: ${eventDate}${event.event_time ? ` ${event.event_time}` :
 ${PLAIN_FOOTER}`;
 
         await resend.emails.send({
-          from: getFromAddress(),
+          from: getFromAddress(event.from_email),
           replyTo: REPLY_TO,
           to: guest.email,
           subject: `【ご来場前のご案内】「${event.name}」`,

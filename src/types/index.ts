@@ -14,6 +14,49 @@ export interface Event {
   created_at: string;
 }
 
+/** 送信元ドメインの検証ステータス（Resend 準拠） */
+export type SenderDomainStatus =
+  | 'pending'
+  | 'verified'
+  | 'failed'
+  | 'temporary_failure'
+  | 'not_started';
+
+/** DNS レコード（Resend が返す形式に合わせる） */
+export interface DnsRecord {
+  /** レコード種別（'SPF' | 'DKIM' | 'MX' 等） */
+  record: string;
+  /** DNS レコード名（例: 'resend._domainkey.goal.dentsu.co.jp'） */
+  name: string;
+  /** DNS レコード値（CNAME ターゲット or TXT 値） */
+  value: string;
+  /** DNS レコードタイプ（'CNAME' | 'TXT' | 'MX' 等） */
+  type: string;
+  /** TTL（例: 'Auto' or '3600'） */
+  ttl?: string;
+  /** 個別レコードの検証状況 */
+  status?: SenderDomainStatus;
+  /** MX 用の優先度 */
+  priority?: number;
+}
+
+/** ユーザーが登録した送信元ドメイン（自社ドメイン送信フロー用） */
+export interface SenderDomain {
+  id: string;
+  user_id: string;
+  /** 例: 'goal.dentsu.co.jp' */
+  domain: string;
+  /** Resend 側のドメインID */
+  resend_domain_id: string;
+  status: SenderDomainStatus;
+  /** Resend が返した DNS レコード一覧（IT部に渡す情報） */
+  dns_records: DnsRecord[] | null;
+  last_checked_at: string | null;
+  verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Guest {
   id: string;
   event_id: string;

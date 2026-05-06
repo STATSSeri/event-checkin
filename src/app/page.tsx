@@ -106,6 +106,9 @@ export default function LoginPage() {
           <br />
           運営までお問い合わせください
         </p>
+        <p className="text-center text-xs text-forest-60 mt-4">
+          初めてご利用の方は <a className="underline" href="/signup?plan=starter">新規登録</a>
+        </p>
       </div>
 
       {/* 小フッター */}

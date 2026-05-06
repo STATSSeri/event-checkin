@@ -3,6 +3,8 @@
  * Mimecast 等のコーポレートメールフィルタ通過率を上げるための設定を集約
  */
 
+import { isValidFromHeader } from './email-validation';
+
 /**
  * 表示名つき From アドレス
  * 例: "S/PASS <noreply@spass.tokyo>"
@@ -12,19 +14,35 @@
  * - "ブランド名 <events@brand.com>" 形式 → そのまま使用
  *
  * Display name があるとスパムスコアが下がる傾向がある
+ *
+ * セキュリティ：ヘッダーインジェクション対策の最終防衛線。
+ * フロント側でも検証しているが、DB に既に不正値が入っているケースや
+ * 直接 API を叩かれるケースを想定し、ここでも検証してフォールバックする。
  */
 export function getFromAddress(eventFromEmail?: string | null): string {
-  if (eventFromEmail) {
-    const trimmed = eventFromEmail.trim();
-    // 既に "Display Name <email>" 形式なら手を加えない
-    if (trimmed.includes('<') && trimmed.includes('>')) {
-      return trimmed;
-    }
-    // 単純なメールアドレスならデフォルトの表示名を付与
-    return `S/PASS <${trimmed}>`;
+  const fallbackEmail = process.env.RESEND_FROM_EMAIL || 'noreply@spass.tokyo';
+  const fallback = `S/PASS <${fallbackEmail}>`;
+
+  if (!eventFromEmail) return fallback;
+
+  const trimmed = eventFromEmail.trim();
+  if (!trimmed) return fallback;
+
+  // ヘッダーインジェクション対策：CRLF 等の制御文字や不正形式を含む値は拒否
+  if (!isValidFromHeader(trimmed)) {
+    console.warn(
+      '[email] Invalid from_email rejected, falling back to default:',
+      JSON.stringify(trimmed),
+    );
+    return fallback;
   }
-  const email = process.env.RESEND_FROM_EMAIL || 'noreply@spass.tokyo';
-  return `S/PASS <${email}>`;
+
+  // 既に "Display Name <email>" 形式なら手を加えない
+  if (trimmed.includes('<') && trimmed.includes('>')) {
+    return trimmed;
+  }
+  // 単純なメールアドレスならデフォルトの表示名を付与
+  return `S/PASS <${trimmed}>`;
 }
 
 /**

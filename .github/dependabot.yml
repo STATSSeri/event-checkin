@@ -1,0 +1,44 @@
+# Dependabot 設定
+# 大手企業のセキュリティ要件で「依存ライブラリの脆弱性管理」を質問されるため、
+# 自動で脆弱性検出 → PR 作成する体制を整える。
+#
+# - npm 依存を週次でチェック
+# - セキュリティアップデートは別枠で即座に PR
+# - PR 数を抑えるため一度に開ける数は制限
+version: 2
+updates:
+  # npm パッケージ
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # マイナー/パッチを1PRにまとめる（PRノイズ削減）
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions（将来 CI を入れたとき用、今は workflows ディレクトリがなくても問題なし）
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"

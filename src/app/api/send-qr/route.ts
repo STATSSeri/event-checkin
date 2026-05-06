@@ -3,11 +3,24 @@ import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { generateQRBuffer } from '@/lib/qr';
 import { getFromAddress, REPLY_TO, PLAIN_FOOTER } from '@/lib/email';
+import {
+  checkRateLimit,
+  getRateLimitIdentifier,
+  rateLimitExceededResponse,
+} from '@/lib/rate-limit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
+    // レート制限チェック（未認証エンドポイント、IPベース）
+    // RSVPトークン総当たりやメール送信濫用を防ぐ
+    const rateLimitId = getRateLimitIdentifier(request);
+    const rateLimit = await checkRateLimit('email', rateLimitId);
+    if (!rateLimit.success) {
+      return rateLimitExceededResponse(rateLimit);
+    }
+
     const { rsvpToken } = await request.json();
 
     // 認可: rsvpToken（メール内リンクのトークン）保有者のみ呼び出し可能

@@ -3,6 +3,11 @@ import { Resend } from 'resend';
 import { createServiceClient } from '@/lib/supabase/server';
 import { verifyEventOwnership } from '@/lib/auth';
 import { getFromAddress, REPLY_TO, htmlToPlainText, PLAIN_FOOTER } from '@/lib/email';
+import {
+  checkRateLimit,
+  getRateLimitIdentifier,
+  rateLimitExceededResponse,
+} from '@/lib/rate-limit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -24,6 +29,13 @@ export async function POST(request: Request) {
         { error: 'このイベントへの操作権限がありません' },
         { status: 403 }
       );
+    }
+
+    // レート制限チェック（メール送信濫用対策）
+    const rateLimitId = getRateLimitIdentifier(request, auth.userId);
+    const rateLimit = await checkRateLimit('email', rateLimitId);
+    if (!rateLimit.success) {
+      return rateLimitExceededResponse(rateLimit);
     }
 
     const supabase = createServiceClient();

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event } from '@/types';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { isValidFromHeader } from '@/lib/email-validation';
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -32,6 +33,19 @@ export default function DashboardPage() {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
+
+    // 送信元アドレスのバリデーション（ヘッダーインジェクション対策）
+    const trimmedFromEmail = fromEmail.trim();
+    if (trimmedFromEmail && !isValidFromHeader(trimmedFromEmail)) {
+      alert(
+        '送信元メールアドレスの形式が正しくありません。\n' +
+          '例: events@brand.com\n' +
+          '例: ブランド名 <events@brand.com>\n' +
+          '改行や制御文字、引用符などは使用できません。',
+      );
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -42,7 +56,7 @@ export default function DashboardPage() {
       event_date: eventDate || null,
       event_time: eventTime || null,
       venue: venue.trim() || null,
-      from_email: fromEmail.trim() || null,
+      from_email: trimmedFromEmail || null,
     });
 
     if (!error) {

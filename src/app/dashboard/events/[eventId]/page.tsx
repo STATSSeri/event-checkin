@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event, Guest, GuestStatus } from '@/types';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { isValidFromHeader } from '@/lib/email-validation';
 
 // 表示用ステータス: DB上は status='invited' + invitation_sent_at IS NULL の状態を
 // 「招待メール未送信(pending)」として表示し分ける
@@ -96,6 +97,19 @@ export default function EventDetailPage() {
       alert('イベント名は必須です');
       return;
     }
+
+    // 送信元アドレスのバリデーション（ヘッダーインジェクション対策）
+    const trimmedFromEmail = editFromEmail.trim();
+    if (trimmedFromEmail && !isValidFromHeader(trimmedFromEmail)) {
+      alert(
+        '送信元メールアドレスの形式が正しくありません。\n' +
+          '例: events@brand.com\n' +
+          '例: ブランド名 <events@brand.com>\n' +
+          '改行や制御文字、引用符などは使用できません。',
+      );
+      return;
+    }
+
     setEditSaving(true);
     const { error } = await supabase
       .from('events')
@@ -105,7 +119,7 @@ export default function EventDetailPage() {
         event_time: editTime || null,
         venue: editVenue.trim() || null,
         description: editDescription.trim() || null,
-        from_email: editFromEmail.trim() || null,
+        from_email: trimmedFromEmail || null,
       })
       .eq('id', eventId);
     setEditSaving(false);

@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event, Guest, GuestStatus } from '@/types';
 import { RichTextEditor } from '@/components/RichTextEditor';
-import { isValidFromHeader } from '@/lib/email-validation';
 
 // 表示用ステータス: DB上は status='invited' + invitation_sent_at IS NULL の状態を
 // 「招待メール未送信(pending)」として表示し分ける
@@ -44,7 +43,6 @@ export default function EventDetailPage() {
   const [editTime, setEditTime] = useState('');
   const [editVenue, setEditVenue] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editFromEmail, setEditFromEmail] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
   // ゲスト追加フォーム
@@ -87,26 +85,14 @@ export default function EventDetailPage() {
     setEditTime(event.event_time || '');
     setEditVenue(event.venue || '');
     setEditDescription(event.description || '');
-    setEditFromEmail(event.from_email || '');
     setIsEditing(true);
   };
 
   // イベント編集を保存
+  // from_email は固定でデフォルト送信元（環境変数）を使う運用方針のためUIから外している
   const handleEditSave = async () => {
     if (!editName.trim()) {
       alert('イベント名は必須です');
-      return;
-    }
-
-    // 送信元アドレスのバリデーション（ヘッダーインジェクション対策）
-    const trimmedFromEmail = editFromEmail.trim();
-    if (trimmedFromEmail && !isValidFromHeader(trimmedFromEmail)) {
-      alert(
-        '送信元メールアドレスの形式が正しくありません。\n' +
-          '例: events@brand.com\n' +
-          '例: ブランド名 <events@brand.com>\n' +
-          '改行や制御文字、引用符などは使用できません。',
-      );
       return;
     }
 
@@ -119,7 +105,6 @@ export default function EventDetailPage() {
         event_time: editTime || null,
         venue: editVenue.trim() || null,
         description: editDescription.trim() || null,
-        from_email: trimmedFromEmail || null,
       })
       .eq('id', eventId);
     setEditSaving(false);
@@ -456,23 +441,6 @@ export default function EventDetailPage() {
               onChange={setEditDescription}
               minHeightClass="min-h-[100px]"
             />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">
-              送信元メールアドレス（任意）
-            </p>
-            <input
-              type="text"
-              placeholder="例: events@brand.com  または  ブランド名 <events@brand.com>"
-              value={editFromEmail}
-              onChange={(e) => setEditFromEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 text-sm"
-            />
-            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-              未指定時はデフォルト送信元（spass.tokyo）から送信されます。
-              <br />
-              ※ 事前に Resend で認証済みのドメインのアドレスのみ使用可能（未認証だと送信失敗）
-            </p>
           </div>
           <div className="flex gap-2">
             <button

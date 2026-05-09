@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Event } from '@/types';
 import { RichTextEditor } from '@/components/RichTextEditor';
-import { isValidFromHeader } from '@/lib/email-validation';
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -16,7 +15,6 @@ export default function DashboardPage() {
   const [eventTime, setEventTime] = useState('');
   const [venue, setVenue] = useState('');
   const [description, setDescription] = useState('');
-  const [fromEmail, setFromEmail] = useState('');
   const router = useRouter();
   const supabase = createClient();
 
@@ -34,21 +32,10 @@ export default function DashboardPage() {
   const handleCreate = async () => {
     if (!name.trim()) return;
 
-    // 送信元アドレスのバリデーション（ヘッダーインジェクション対策）
-    const trimmedFromEmail = fromEmail.trim();
-    if (trimmedFromEmail && !isValidFromHeader(trimmedFromEmail)) {
-      alert(
-        '送信元メールアドレスの形式が正しくありません。\n' +
-          '例: events@brand.com\n' +
-          '例: ブランド名 <events@brand.com>\n' +
-          '改行や制御文字、引用符などは使用できません。',
-      );
-      return;
-    }
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // from_email は固定でデフォルト送信元（環境変数）を使う運用方針のため null を保存
     const { error } = await supabase.from('events').insert({
       organizer_id: user.id,
       name: name.trim(),
@@ -56,11 +43,11 @@ export default function DashboardPage() {
       event_date: eventDate || null,
       event_time: eventTime || null,
       venue: venue.trim() || null,
-      from_email: trimmedFromEmail || null,
+      from_email: null,
     });
 
     if (!error) {
-      setName(''); setEventDate(''); setEventTime(''); setVenue(''); setDescription(''); setFromEmail('');
+      setName(''); setEventDate(''); setEventTime(''); setVenue(''); setDescription('');
       setShowForm(false);
       await fetchEvents();
     }
@@ -146,23 +133,6 @@ export default function DashboardPage() {
               onChange={setDescription}
               minHeightClass="min-h-[80px]"
             />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">
-              送信元メールアドレス（任意）
-            </p>
-            <input
-              type="text"
-              placeholder="例: events@brand.com  または  ブランド名 <events@brand.com>"
-              value={fromEmail}
-              onChange={(e) => setFromEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 text-sm"
-            />
-            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-              未指定時はデフォルト送信元（spass.tokyo）から送信されます。
-              <br />
-              ※ 事前に Resend で認証済みのドメインのアドレスのみ使用可能（未認証だと送信失敗）
-            </p>
           </div>
           <div className="flex gap-2">
             <button

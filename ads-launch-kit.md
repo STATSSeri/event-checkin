@@ -38,8 +38,8 @@ NEXT_PUBLIC_META_PIXEL_ID=（取得したID）
 ```
 
 対象:
-- ✅ `event-checkin`（spass.tokyo） — `app/layout.tsx` で全ページに自動挿入される
-- ☐ `S_PASS_LP`（spass-lp.vercel.app） — まだ未設置。同様の `<Script>` を追加が必要
+- ✅ `event-checkin`（spass.tokyo） — `app/layout.tsx` で全ページに自動挿入。signup完了時に `CompleteRegistration` 発火
+- ✅ `S_PASS_LP`（spass-lp.vercel.app） — `app/layout.tsx` で全ページに自動挿入。Apply フォーム送信成功時に `Lead` 発火
 
 ### Step 3: 発火確認
 - Chrome 拡張 [Meta Pixel Helper](https://chrome.google.com/webstore/detail/meta-pixel-helper/fdgfkebogiimcoedlicjlajpkdmockpc) をインストール
@@ -270,6 +270,6 @@ LP経由でも signup 直結でも、上記UTMがアプリ側で `auth.user.user
 
 ## 10. 不明点／決め切れていないこと
 
-- LP（spass-lp.vercel.app）側の Meta Pixel 設置 — まだ未実装。spass.tokyo 側のコードを参考に同様の設置が必要
 - 利用規約・プライバシーポリシーの実体ページ — 現状 `#` リンクのまま。Meta広告審査で弾かれる可能性あり、要事前準備
 - Stripe決済の signup後接続 — 14日間トライアル終了後の課金フロー。今は無くてもトライアル取得まではOKだが、有償転換率を追うなら必須
+- 14日間トライアルの実装ロジック — 現状 signup 後すぐ dashboard に入る挙動のため、トライアル期間の管理（DBに `trial_ends_at` 等）が未実装。リーガル文言だけ広告に出して実装なし、は信頼性的にNGなので早めに着手推奨

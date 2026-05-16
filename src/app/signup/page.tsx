@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
-type SignupPlan = 'starter' | 'expert';
+type SignupPlan = 'starter' | 'standard' | 'expert';
 
 const plans: Record<SignupPlan, {
   name: string;
@@ -14,14 +14,21 @@ const plans: Record<SignupPlan, {
   starter: {
     name: 'スタータープラン',
     price: '月額 5,000円',
-    caption: 'イベント数は月9件まで。まずはこちらで開始できます。',
+    caption: '月10件までのイベント運用に。単発・小規模主催者向け。',
+  },
+  standard: {
+    name: 'スタンダードプラン',
+    price: '月額 30,000円',
+    caption: '月30件までのイベント運用に。代理店・継続運用向け。',
   },
   expert: {
     name: 'エキスパートプラン',
     price: '個別お見積り',
-    caption: '月10件以上のイベント運用に対応します。',
+    caption: '無制限。大手ブランド・大規模運用向け。',
   },
 };
+
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const;
 
 function SignupForm() {
   const [companyName, setCompanyName] = useState('');
@@ -36,7 +43,18 @@ function SignupForm() {
   const supabase = createClient();
 
   const selectedPlan = useMemo<SignupPlan>(() => {
-    return searchParams.get('plan') === 'expert' ? 'expert' : 'starter';
+    const raw = searchParams.get('plan');
+    if (raw === 'expert' || raw === 'standard') return raw;
+    return 'starter';
+  }, [searchParams]);
+
+  const utmParams = useMemo<Record<string, string>>(() => {
+    const result: Record<string, string> = {};
+    for (const key of UTM_KEYS) {
+      const value = searchParams.get(key);
+      if (value) result[key] = value;
+    }
+    return result;
   }, [searchParams]);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -60,6 +78,7 @@ function SignupForm() {
           company_name: companyName.trim(),
           contact_name: contactName.trim(),
           requested_plan: selectedPlan,
+          ...utmParams,
         },
       },
     });
@@ -68,6 +87,14 @@ function SignupForm() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+      window.fbq('track', 'CompleteRegistration', {
+        content_name: selectedPlan,
+        value: 0,
+        currency: 'JPY',
+      });
     }
 
     if (data.session) {
@@ -112,11 +139,14 @@ function SignupForm() {
             </div>
             <p className="text-sm font-bold text-forest whitespace-nowrap">{plan.price}</p>
           </div>
-          {selectedPlan === 'starter' && (
-            <p className="text-[11px] text-forest-60 mt-3">
-              Stripe決済導入後は、この登録後に決済画面へ接続します。
+          <div className="mt-3 rounded-md bg-forest/5 px-3 py-2">
+            <p className="text-[11px] text-forest font-bold tracking-[0.04em]">
+              ✓ 14日間無料で全機能を試せます
             </p>
-          )}
+            <p className="text-[11px] text-forest-60 mt-1 leading-relaxed">
+              期間中はスタンダードプラン相当の機能が解放されます。期間終了時に課金開始 or 解約を選択できます。
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSignup} className="bg-white rounded-lg shadow-md p-6 space-y-4">

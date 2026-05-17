@@ -85,6 +85,12 @@ export default function DashboardPage() {
           >
             📷 受付スキャン
           </a>
+          <a
+            href="/dashboard/settings"
+            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 inline-flex items-center gap-1"
+          >
+            ⚙️ 設定
+          </a>
           <button
             onClick={handleLogout}
             className="px-3 py-1.5 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600"

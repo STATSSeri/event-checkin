@@ -3,25 +3,13 @@
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { PLANS } from '@/lib/stripe';
+import type { PlanId } from '@/types';
 
-type SignupPlan = 'starter' | 'expert';
-
-const plans: Record<SignupPlan, {
-  name: string;
-  price: string;
-  caption: string;
-}> = {
-  starter: {
-    name: 'スタータープラン',
-    price: '月額 5,000円',
-    caption: 'イベント数は月9件まで。まずはこちらで開始できます。',
-  },
-  expert: {
-    name: 'エキスパートプラン',
-    price: '個別お見積り',
-    caption: '月10件以上のイベント運用に対応します。',
-  },
-};
+/** 価格表示用フォーマッタ（円・カンマ区切り） */
+function formatPrice(value: number): string {
+  return `月額 ${value.toLocaleString('ja-JP')}円`;
+}
 
 function SignupForm() {
   const [companyName, setCompanyName] = useState('');
@@ -35,8 +23,15 @@ function SignupForm() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const selectedPlan = useMemo<SignupPlan>(() => {
-    return searchParams.get('plan') === 'expert' ? 'expert' : 'starter';
+  /**
+   * URLパラメータ `?plan=pro` でプロプランを選択。
+   * 後方互換: 旧パラメータ `?plan=expert` も `pro` として扱う。
+   * デフォルトは starter。
+   */
+  const selectedPlan = useMemo<PlanId>(() => {
+    const raw = searchParams.get('plan');
+    if (raw === 'pro' || raw === 'expert') return 'pro';
+    return 'starter';
   }, [searchParams]);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -81,14 +76,14 @@ function SignupForm() {
     setLoading(false);
   };
 
-  const plan = plans[selectedPlan];
+  const plan = PLANS[selectedPlan];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1
-            className="text-5xl text-forest tracking-[0.32em] mb-4"
+            className="text-3xl text-forest tracking-[0.32em] mb-2"
             style={{
               fontFamily: 'var(--font-mark)',
               fontWeight: 700,
@@ -105,21 +100,33 @@ function SignupForm() {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-          <p className="text-xs text-forest-60 mb-1">選択中のプラン</p>
+        {/* 選択中のプラン + トライアル訴求 */}
+        <div className="bg-white rounded-lg shadow-lg p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-forest-60">選択中のプラン</p>
+            <span className="text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full bg-forest text-cream">
+              14日間 無料
+            </span>
+          </div>
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="font-bold text-forest">{plan.name}</h2>
-              <p className="text-xs text-forest-60 mt-1 leading-relaxed">{plan.caption}</p>
+              <p className="text-xs text-forest-60 mt-1 leading-relaxed">
+                {plan.description}
+              </p>
             </div>
-            <p className="text-sm font-bold text-forest whitespace-nowrap">{plan.price}</p>
+            <p className="text-sm font-bold text-forest whitespace-nowrap">
+              {formatPrice(plan.priceMonthly)}
+            </p>
           </div>
-          <p className="text-[11px] text-forest-60 mt-3">
-            登録後にプラン選択画面 → Stripe 決済ページへ進みます。14日間無料でお試しいただけます。
+          <p className="text-[11px] text-forest-60 mt-3 leading-relaxed">
+            登録後にプラン選択 → 決済情報の入力へ進みます。
+            <br />
+            14日間は課金されません。期間中はいつでも解約できます。
           </p>
         </div>
 
-        <form onSubmit={handleSignup} className="bg-white rounded-lg shadow-md p-6 space-y-4">
+        <form onSubmit={handleSignup} className="bg-white rounded-lg shadow-lg p-6 space-y-4">
           <div>
             <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
               会社名
@@ -178,13 +185,13 @@ function SignupForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
+            className="w-full py-3 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
           >
-            {loading ? '登録中...' : '新規登録する'}
+            {loading ? '登録中...' : '無料で始める'}
           </button>
         </form>
 
-        <p className="text-center text-xs text-forest-60 mt-6">
+        <p className="text-center text-xs text-forest-60 mt-5">
           登録済みの方は <a className="underline" href="/">ログイン</a>
         </p>
       </div>

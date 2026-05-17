@@ -42,14 +42,14 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: 'スタータープラン',
     priceMonthly: 5000,
     monthlyEventLimit: 2,
-    description: '月2件までのイベント運用に。個人主催・小規模向け。',
+    description: 'まずはお試しに。月2件までのイベントを運用できます。',
   },
   pro: {
     id: 'pro',
     name: 'プロプラン',
     priceMonthly: 29800,
     monthlyEventLimit: 30,
-    description: '月30件までのイベント運用に。中規模主催者向け。',
+    description: '本格運用に。月30件までのイベントを運用できます。',
   },
 };
 

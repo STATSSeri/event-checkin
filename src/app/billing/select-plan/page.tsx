@@ -5,55 +5,44 @@
  *
  * プラン選択画面。signup 直後、またはダッシュボードガードからの誘導で表示される。
  * 「選ぶ」ボタン → /api/billing/checkout → Stripe Checkout へリダイレクト。
+ *
+ * 設計方針:
+ *   - 「お試し → 本格運用」の自然な流れに見えるよう、フラットな2カード並置（RECOMMENDED 等の押し付けはしない）
+ *   - 14日間無料トライアルを最上部に強調表示
+ *   - プラン定義のマスタは src/lib/stripe.ts の PLANS を参照
  */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PLANS } from '@/lib/stripe';
+import type { PlanId } from '@/types';
 
-type PlanCard = {
-  id: 'starter' | 'pro';
-  name: string;
-  price: string;
-  caption: string;
-  features: string[];
-  recommended?: boolean;
+/** 価格表示用フォーマッタ（円・カンマ区切り） */
+function formatPrice(value: number): string {
+  return `${value.toLocaleString('ja-JP')}円`;
+}
+
+/** プランごとの特典リスト（マスタとは別に UI 上の訴求用） */
+const PLAN_FEATURES: Record<PlanId, string[]> = {
+  starter: [
+    '月2件までイベント作成',
+    'メール招待・QRコード発行',
+    '当日受付・チェックイン管理',
+  ],
+  pro: [
+    '月30件までイベント作成',
+    'メール招待・QRコード発行',
+    '当日受付・チェックイン管理',
+    '自社ドメインからメール送信',
+  ],
 };
 
-const PLANS: PlanCard[] = [
-  {
-    id: 'starter',
-    name: 'スタータープラン',
-    price: '月額 5,000円',
-    caption: '月2件までのイベント運用に。個人主催・小規模向け。',
-    features: [
-      '月2件までイベント作成',
-      'メール招待・QRコード発行',
-      '当日受付・チェックイン管理',
-      '14日間の無料トライアル',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'プロプラン',
-    price: '月額 29,800円',
-    caption: '月30件までのイベント運用に。中規模主催者向け。',
-    features: [
-      '月30件までイベント作成',
-      'メール招待・QRコード発行',
-      '当日受付・チェックイン管理',
-      '自社ドメイン送信（要設定）',
-      '14日間の無料トライアル',
-    ],
-    recommended: true,
-  },
-];
-
 export default function SelectPlanPage() {
-  const [loading, setLoading] = useState<'starter' | 'pro' | null>(null);
+  const [loading, setLoading] = useState<PlanId | null>(null);
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSelect = async (plan: 'starter' | 'pro') => {
+  const handleSelect = async (plan: PlanId) => {
     setError('');
     setLoading(plan);
     try {
@@ -75,70 +64,90 @@ export default function SelectPlanPage() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-12 bg-cream">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-10">
+    <div className="min-h-screen px-4 py-10 bg-cream">
+      <div className="max-w-4xl mx-auto">
+        {/* ヘッダー */}
+        <div className="text-center mb-8">
           <h1
-            className="text-5xl text-forest tracking-[0.32em] mb-3"
-            style={{ fontFamily: 'var(--font-mark)', fontWeight: 700, paddingLeft: '0.32em' }}
+            className="text-3xl text-forest tracking-[0.32em] mb-3"
+            style={{
+              fontFamily: 'var(--font-mark)',
+              fontWeight: 700,
+              paddingLeft: '0.32em',
+            }}
           >
             S/PASS
           </h1>
-          <p className="text-sm text-forest-60">
-            14日間の無料トライアルでスタート。<br className="md:hidden" />
-            いつでも解約・プラン変更が可能です。
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest text-cream text-[11px] tracking-[0.16em] uppercase mb-4">
+            14日間 無料トライアル
+          </div>
+          <p className="text-sm text-forest-60 leading-relaxed">
+            まずは14日間、すべての機能を無料でお試しいただけます。
+            <br className="md:hidden" />
+            期間中の解約・プラン変更はいつでも可能です。
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-white rounded-lg shadow-md p-6 border-2 ${
-                plan.recommended ? 'border-forest' : 'border-transparent'
-              }`}
-            >
-              {plan.recommended && (
-                <div className="text-[10px] uppercase tracking-[0.28em] text-forest mb-2">
-                  Recommended
-                </div>
-              )}
-              <h2 className="text-xl font-bold text-forest mb-1">{plan.name}</h2>
-              <p className="text-2xl font-bold text-forest mb-3">{plan.price}</p>
-              <p className="text-sm text-forest-60 mb-4 leading-relaxed">{plan.caption}</p>
-              <ul className="text-sm text-forest space-y-2 mb-6">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <span className="text-forest-60">・</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleSelect(plan.id)}
-                disabled={loading !== null}
-                className="w-full py-2.5 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
+        {/* プラン2枚 */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {(Object.keys(PLANS) as PlanId[]).map((id) => {
+            const plan = PLANS[id];
+            const features = PLAN_FEATURES[id];
+            const isLoading = loading === id;
+            return (
+              <div
+                key={id}
+                className="flex flex-col bg-white rounded-lg shadow-lg p-6 border border-forest/10"
               >
-                {loading === plan.id ? '読み込み中...' : 'このプランで開始する'}
-              </button>
-            </div>
-          ))}
+                <h2 className="text-xl font-bold text-forest mb-1">{plan.name}</h2>
+                <p className="text-xs text-forest-60 mb-4 leading-relaxed min-h-[2.5rem]">
+                  {plan.description}
+                </p>
+
+                <div className="flex items-baseline gap-1 mb-5">
+                  <span className="text-3xl font-bold text-forest">
+                    {formatPrice(plan.priceMonthly)}
+                  </span>
+                  <span className="text-xs text-forest-60">/ 月</span>
+                </div>
+
+                <ul className="text-sm text-forest space-y-2 mb-6 flex-1">
+                  {features.map((f) => (
+                    <li key={f} className="flex gap-2 items-start">
+                      <span className="text-forest-60 flex-shrink-0 mt-0.5">✓</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleSelect(id)}
+                  disabled={loading !== null}
+                  className="w-full py-3 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
+                >
+                  {isLoading ? '読み込み中...' : '14日間 無料で始める'}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {error && (
           <p className="text-center text-red-600 text-sm mt-6">{error}</p>
         )}
 
-        <p className="text-center text-xs text-forest-60 mt-8 leading-relaxed">
-          ボタンを押すと Stripe の安全な決済ページに移動します。<br />
-          14日間は課金されません。トライアル期間中の解約も可能です。
-        </p>
-
-        <p className="text-center text-xs text-forest-60 mt-4">
-          <button onClick={() => router.push('/')} className="underline">
-            ログイン画面に戻る
-          </button>
-        </p>
+        <div className="text-center mt-8 space-y-2">
+          <p className="text-xs text-forest-60 leading-relaxed">
+            ボタンを押すと Stripe の安全な決済ページに移動します。
+            <br />
+            14日間は課金されません。期間中の解約も可能です。
+          </p>
+          <p className="text-xs text-forest-60">
+            <button onClick={() => router.push('/')} className="underline">
+              ログイン画面に戻る
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

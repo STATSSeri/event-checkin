@@ -8,7 +8,7 @@
  */
 
 import { createServiceClient } from '@/lib/supabase/server';
-import type { Subscription, SubscriptionStatus } from '@/types';
+import type { Subscription } from '@/types';
 import { PLANS } from '@/lib/stripe';
 
 /**

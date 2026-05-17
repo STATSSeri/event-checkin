@@ -50,7 +50,8 @@ function SignupForm() {
     }
 
     setLoading(true);
-    const emailRedirectTo = `${window.location.origin}/auth/callback?next=/dashboard`;
+    // メール認証完了後はプラン選択画面へ誘導（Stripe Checkout の起点）
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=/billing/select-plan`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -70,8 +71,9 @@ function SignupForm() {
       return;
     }
 
+    // signUp 直後に session が返るケース（メール認証無効環境）→ プラン選択へ
     if (data.session) {
-      router.push('/dashboard');
+      router.push('/billing/select-plan');
       return;
     }
 
@@ -112,11 +114,9 @@ function SignupForm() {
             </div>
             <p className="text-sm font-bold text-forest whitespace-nowrap">{plan.price}</p>
           </div>
-          {selectedPlan === 'starter' && (
-            <p className="text-[11px] text-forest-60 mt-3">
-              Stripe決済導入後は、この登録後に決済画面へ接続します。
-            </p>
-          )}
+          <p className="text-[11px] text-forest-60 mt-3">
+            登録後にプラン選択画面 → Stripe 決済ページへ進みます。14日間無料でお試しいただけます。
+          </p>
         </div>
 
         <form onSubmit={handleSignup} className="bg-white rounded-lg shadow-md p-6 space-y-4">

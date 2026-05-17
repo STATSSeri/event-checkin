@@ -40,6 +40,59 @@ export interface DnsRecord {
   priority?: number;
 }
 
+/**
+ * サブスクリプションの状態（Stripe 準拠 + 独自の trialing_no_card）。
+ *  - trialing_no_card : カード未登録のトライアル中（既存ユーザー用）
+ *  - trialing         : Stripe 上でトライアル中（カード登録済み）
+ *  - active           : 正常課金中
+ *  - past_due         : 課金失敗（再試行中）
+ *  - canceled         : 解約済み
+ *  - incomplete       : 初回決済未完了
+ *  - unpaid           : 課金失敗継続
+ */
+export type SubscriptionStatus =
+  | 'trialing_no_card'
+  | 'trialing'
+  | 'active'
+  | 'past_due'
+  | 'canceled'
+  | 'incomplete'
+  | 'unpaid';
+
+/** プラン識別子（内部キー）。Stripe Price ID とは別管理。 */
+export type PlanId = 'starter' | 'pro';
+
+/** プラン定義（コード側のマスタ。価格・上限の表示用） */
+export interface PlanDefinition {
+  id: PlanId;
+  name: string;
+  /** 月額（円、税込前。表示時に「(税込)」を付ける） */
+  priceMonthly: number;
+  /** 月間イベント作成数の上限 */
+  monthlyEventLimit: number;
+  description: string;
+}
+
+/** ユーザー1人につき1レコードの Stripe サブスクリプション状態 */
+export interface Subscription {
+  id: string;
+  user_id: string;
+  /** Stripe Customer ID（cus_xxx）。Checkout 初回作成時に発行 */
+  stripe_customer_id: string | null;
+  /** Stripe Subscription ID（sub_xxx）。トライアル開始時に発行 */
+  stripe_subscription_id: string | null;
+  status: SubscriptionStatus;
+  plan: PlanId | null;
+  /** トライアル終了日時（ISO 文字列） */
+  trial_end: string | null;
+  /** 現在の課金期間終了日時（次回請求日、ISO 文字列） */
+  current_period_end: string | null;
+  /** 期間末解約予約フラグ */
+  cancel_at_period_end: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 /** ユーザーが登録した送信元ドメイン（自社ドメイン送信フロー用） */
 export interface SenderDomain {
   id: string;

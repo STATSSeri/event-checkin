@@ -24,6 +24,7 @@ import {
   validatePasswordOrError,
 } from '@/lib/password-policy';
 import { hashForHistory, matchesHistoryHash } from '@/lib/password-hash';
+import { recordAuditLog } from '@/lib/audit-log';
 import {
   checkRateLimit,
   getRateLimitIdentifier,
@@ -200,6 +201,13 @@ export async function POST(request: Request) {
     },
     { onConflict: 'user_id' },
   );
+
+  // ⑧ 監査ログに記録（IS10 #22 対応）
+  await recordAuditLog({
+    userId: auth.userId,
+    action: 'password_change',
+    request,
+  });
 
   return NextResponse.json({ ok: true });
 }

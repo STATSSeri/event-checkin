@@ -73,3 +73,87 @@ body {
   height: 0;
   pointer-events: none;
 }
+
+/* 法務系ドキュメント（/legal 配下）の本文タイポグラフィ
+   docs/*.md を marked で HTML 化したものを表示するための統一スタイル */
+.legal-prose {
+  color: var(--color-forest);
+  line-height: 1.75;
+  font-size: 0.9375rem;
+}
+.legal-prose h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  letter-spacing: 0.02em;
+}
+.legal-prose h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--color-forest-30);
+}
+.legal-prose h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+}
+.legal-prose p {
+  margin: 0.7rem 0;
+}
+.legal-prose ul,
+.legal-prose ol {
+  margin: 0.7rem 0;
+  padding-left: 1.5rem;
+}
+.legal-prose ul { list-style: disc; }
+.legal-prose ol { list-style: decimal; }
+.legal-prose li { margin: 0.2rem 0; }
+.legal-prose li > ul,
+.legal-prose li > ol { margin: 0.3rem 0; }
+.legal-prose strong { font-weight: 700; }
+.legal-prose em { font-style: italic; }
+.legal-prose a {
+  color: var(--color-forest);
+  text-decoration: underline;
+}
+.legal-prose a:hover { opacity: 0.7; }
+.legal-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-forest-30);
+  margin: 2rem 0;
+}
+.legal-prose code {
+  background: rgba(31, 59, 47, 0.08);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: var(--font-mark), ui-monospace, monospace;
+}
+.legal-prose blockquote {
+  border-left: 3px solid var(--color-forest-30);
+  padding-left: 0.9rem;
+  margin: 0.8rem 0;
+  color: var(--color-forest-80);
+}
+.legal-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.9rem 0;
+  font-size: 0.875rem;
+}
+.legal-prose th,
+.legal-prose td {
+  border: 1px solid var(--color-forest-30);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+.legal-prose th {
+  background: rgba(31, 59, 47, 0.06);
+  font-weight: 700;
+}
+.legal-prose tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.4);
+}

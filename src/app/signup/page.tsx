@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PLANS } from '@/lib/stripe';
 import type { PlanId } from '@/types';
+import {
+  PASSWORD_MIN_LENGTH,
+  validatePasswordOrError,
+} from '@/lib/password-policy';
+import { PasswordStrengthHint } from '@/components/PasswordStrengthHint';
 
 /** 価格表示用フォーマッタ（円・カンマ区切り） */
 function formatPrice(value: number): string {
@@ -39,8 +44,9 @@ function SignupForm() {
     setError('');
     setMessage('');
 
-    if (password.length < 6) {
-      setError('パスワードは6文字以上で入力してください');
+    const pwError = validatePasswordOrError(password);
+    if (pwError) {
+      setError(pwError);
       return;
     }
 
@@ -176,9 +182,11 @@ function SignupForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={PASSWORD_MIN_LENGTH}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest text-gray-900"
+              autoComplete="new-password"
             />
+            <PasswordStrengthHint password={password} />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           {message && <p className="text-emerald-700 text-sm leading-relaxed">{message}</p>}

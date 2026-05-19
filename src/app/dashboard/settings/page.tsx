@@ -30,6 +30,12 @@ const ITEMS: SettingItem[] = [
     description: '自社ドメインから招待メールを送信（プロプラン以上）',
     icon: '✉️',
   },
+  {
+    href: '/dashboard/settings/security',
+    title: 'セキュリティ',
+    description: 'パスワード変更 / 多要素認証（MFA）の管理',
+    icon: '🔐',
+  },
 ];
 
 export default async function SettingsIndexPage() {

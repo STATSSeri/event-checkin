@@ -21,6 +21,7 @@ function SignupForm() {
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [consented, setConsented] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +44,11 @@ function SignupForm() {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    if (!consented) {
+      setError('利用規約とプライバシーポリシーへの同意が必要です');
+      return;
+    }
 
     const pwError = validatePasswordOrError(password);
     if (pwError) {
@@ -188,12 +194,43 @@ function SignupForm() {
             />
             <PasswordStrengthHint password={password} />
           </div>
+          {/* 利用規約・プライバシーポリシーへの明示的同意 */}
+          <label className="flex items-start gap-2 text-[12px] leading-relaxed text-forest cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={consented}
+              onChange={(e) => setConsented(e.target.checked)}
+              required
+              className="mt-0.5 w-4 h-4 accent-forest flex-shrink-0"
+              aria-describedby="consent-help"
+            />
+            <span id="consent-help">
+              <a
+                href="/legal/terms-of-service"
+                target="_blank"
+                rel="noopener"
+                className="underline"
+              >
+                利用規約
+              </a>
+              および
+              <a
+                href="/legal/privacy-policy"
+                target="_blank"
+                rel="noopener"
+                className="underline"
+              >
+                プライバシーポリシー
+              </a>
+              に同意します
+            </span>
+          </label>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           {message && <p className="text-emerald-700 text-sm leading-relaxed">{message}</p>}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-3 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 font-medium text-sm tracking-[0.08em] transition-opacity"
+            disabled={loading || !consented}
+            className="w-full py-3 px-4 bg-forest text-cream rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm tracking-[0.08em] transition-opacity"
           >
             {loading ? '登録中...' : '無料で始める'}
           </button>
@@ -203,15 +240,7 @@ function SignupForm() {
           登録済みの方は <a className="underline" href="/">ログイン</a>
         </p>
 
-        <p className="text-center text-[11px] text-forest-60 mt-5 leading-relaxed">
-          「無料で始める」を押すと、
-          <a href="/legal/terms-of-service" className="underline">利用規約</a>
-          および
-          <a href="/legal/privacy-policy" className="underline">プライバシーポリシー</a>
-          に同意したものとみなします。
-        </p>
-
-        <nav className="mt-3 text-[11px] text-forest-60 flex flex-wrap justify-center gap-x-3 gap-y-1">
+        <nav className="mt-5 text-[11px] text-forest-60 flex flex-wrap justify-center gap-x-3 gap-y-1">
           <a href="/legal/specified-commercial-transaction" className="hover:text-forest underline">特定商取引法に基づく表記</a>
           <a href="/legal" className="hover:text-forest underline">その他の規程</a>
         </nav>

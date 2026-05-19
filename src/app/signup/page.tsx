@@ -202,6 +202,19 @@ function SignupForm() {
         <p className="text-center text-xs text-forest-60 mt-5">
           登録済みの方は <a className="underline" href="/">ログイン</a>
         </p>
+
+        <p className="text-center text-[11px] text-forest-60 mt-5 leading-relaxed">
+          「無料で始める」を押すと、
+          <a href="/legal/terms-of-service" className="underline">利用規約</a>
+          および
+          <a href="/legal/privacy-policy" className="underline">プライバシーポリシー</a>
+          に同意したものとみなします。
+        </p>
+
+        <nav className="mt-3 text-[11px] text-forest-60 flex flex-wrap justify-center gap-x-3 gap-y-1">
+          <a href="/legal/specified-commercial-transaction" className="hover:text-forest underline">特定商取引法に基づく表記</a>
+          <a href="/legal" className="hover:text-forest underline">その他の規程</a>
+        </nav>
       </div>
     </div>
   );

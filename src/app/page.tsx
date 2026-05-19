@@ -118,6 +118,12 @@ export default function LoginPage() {
       >
         運営：スタッツ株式会社
       </p>
+      <nav className="mt-3 text-[11px] text-forest-60 flex flex-wrap justify-center gap-x-3 gap-y-1">
+        <a href="/legal/terms-of-service" className="hover:text-forest underline">利用規約</a>
+        <a href="/legal/privacy-policy" className="hover:text-forest underline">プライバシーポリシー</a>
+        <a href="/legal/specified-commercial-transaction" className="hover:text-forest underline">特定商取引法に基づく表記</a>
+        <a href="/legal" className="hover:text-forest underline">その他</a>
+      </nav>
     </div>
   );
 }

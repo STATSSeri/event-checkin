@@ -67,12 +67,21 @@ function ChallengeForm() {
       challengeId: challenge.id,
       code: code.trim(),
     });
-    setLoading(false);
     if (verifyErr) {
-      setError('認証コードが正しくありません');
+      setLoading(false);
+      setError(
+        verifyErr.message?.includes('Invalid') ||
+          verifyErr.message?.includes('expired')
+          ? '認証コードが正しくありません（コードは30秒で期限切れになります）'
+          : `認証エラー: ${verifyErr.message}`,
+      );
       return;
     }
-    router.replace(nextPath);
+    // verify 成功時、Supabase の cookie / session が AAL2 に更新される。
+    // router.replace だと middleware が古い cookie を読んで /mfa-challenge に
+    // ループバックする事例があるため、明示的にセッション再取得 → フルリロードする。
+    await supabase.auth.refreshSession();
+    window.location.replace(nextPath);
   };
 
   const handleSignOut = async () => {

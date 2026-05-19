@@ -104,6 +104,15 @@ export function MfaSection() {
       return;
     }
     setMessage('多要素認証を有効化しました。');
+    // 監査ログに記録（失敗してもユーザー操作は止めない）
+    fetch('/api/audit/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'mfa_enroll',
+        metadata: { factor_id: pending.factorId, friendly_name: friendlyName.trim() || null },
+      }),
+    }).catch(() => {});
     setPending(null);
     setVerifyCode('');
     setFriendlyName('');
@@ -133,6 +142,15 @@ export function MfaSection() {
       return;
     }
     setMessage('多要素認証を無効化しました。');
+    // 監査ログに記録
+    fetch('/api/audit/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'mfa_unenroll',
+        metadata: { factor_id: factorId },
+      }),
+    }).catch(() => {});
     await loadFactors();
   };
 

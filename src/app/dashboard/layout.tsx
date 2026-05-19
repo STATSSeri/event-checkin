@@ -10,9 +10,11 @@
  */
 
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { getSubscription, evaluateDashboardAccess } from '@/lib/billing';
 import { PLANS } from '@/lib/stripe';
+import { recordLoginIfStale } from '@/lib/audit-log';
 import type { Subscription } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -140,6 +142,10 @@ export default async function DashboardLayout({
   if (!user) {
     redirect('/');
   }
+
+  // ログイン追跡（throttle 30 分、IS10 #22 対応）
+  // 失敗してもダッシュボード表示は止めない
+  recordLoginIfStale(user.id, headers()).catch(() => {});
 
   // サブスク状態チェック
   const sub = await getSubscription(user.id);

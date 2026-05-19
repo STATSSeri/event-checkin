@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PasswordChangeForm } from './PasswordChangeForm';
 import { MfaSection } from './MfaSection';
+import { ActivitySection } from './ActivitySection';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export default async function SecuritySettingsPage() {
         <PasswordChangeForm />
       </section>
 
-      <section className="bg-white rounded-lg shadow-md p-6">
+      <section className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-base font-bold text-forest mb-1">
           多要素認証（MFA）
         </h2>
@@ -49,6 +50,16 @@ export default async function SecuritySettingsPage() {
           ログインの2段階目に使用します。
         </p>
         <MfaSection />
+      </section>
+
+      <section className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-base font-bold text-forest mb-1">
+          アクティビティ履歴
+        </h2>
+        <p className="text-xs text-forest-60 leading-relaxed mb-4">
+          ご自身のアカウントに関する主要な操作の記録です。
+        </p>
+        <ActivitySection userId={user.id} />
       </section>
     </div>
   );

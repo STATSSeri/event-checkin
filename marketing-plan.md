@@ -8,7 +8,7 @@
 ## 0. エグゼクティブサマリー
 
 - **ツール**: S/PASS — ブランド招待制イベント特化のRSVP＋QR受付SaaS
-- **既存LP**: `spass-lp.vercel.app` に存在（マーケLP）。`spass.tokyo` はアプリ本体のログイン画面に到達している
+- **既存LP**: `lp.spass.tokyo` に存在（マーケLP）。`spass.tokyo` はアプリ本体のログイン画面に到達している
 - **競合不在のブルーオーシャン**: 日本市場にラグジュアリーブランド招待制イベント特化SaaSは存在しない。Peatix（大衆）／EventHub（BtoBカンファレンス）／eventos（大型カスタム）と棲み分け可
 - **ターゲット**: ①PR/広告代理店のイベント担当 ②ブランド企業のPR/宣伝部
 - **CV**: `/signup?plan=starter` への直接誘導（無料トライアル登録）
@@ -52,7 +52,7 @@
 - **キータグライン**: 「ブランドのための、招待と受付。」「扉は、静かにひらく。」「Quietly, the door opens for your guests.」
 - **世界観**: 静謐、ミニマル、余白多め、ラグジュアリーブランドのインビテーションカードの肌触り
 
-### 1-3. 既存LP（spass-lp.vercel.app）構成
+### 1-3. 既存LP（lp.spass.tokyo）構成
 
 ```
 Hero:    「扉は、静かにひらく。ブランドのための、招待と受付。」 / From ¥30,000 / event.
@@ -126,7 +126,7 @@ CTA:     Apply for S/PASS（フォーム）
 
 ---
 
-## 4. LP改修案（既存 spass-lp.vercel.app をMeta広告誘導用に最適化）
+## 4. LP改修案（既存 lp.spass.tokyo をMeta広告誘導用に最適化）
 
 ### 方針
 - 既存LPの世界観・コピー資産は維持。**広告経由トラフィックのCV率を最大化するため、上部とCTAを最適化**

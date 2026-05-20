@@ -14,7 +14,7 @@
 | 3 | `NEXT_PUBLIC_META_PIXEL_ID` を Vercel 環境変数（spass.tokyo / spass-lp 両方）に設定 | ☐ |
 | 4 | Pixel が PageView を発火していることをイベントマネージャで確認 | ☐ |
 | 5 | spass.tokyo 側で signup 完了時に `CompleteRegistration` イベントが発火 | ☐ |
-| 6 | LP（spass-lp.vercel.app）の料金統一改修がデプロイ済み | ☐ |
+| 6 | LP（lp.spass.tokyo）の料金統一改修がデプロイ済み | ☐ |
 | 7 | 広告クリエイティブ画像（Higgsfield生成9枚）のDL＆Canvaでテキスト合成完了 | ☐ |
 | 8 | 利用規約・プライバシーポリシーの実体ページ（現状 `#`）を仮でも公開 | ☐ |
 | 9 | 広告アカウントの支払い方法（クレカ）設定済み | ☐ |
@@ -39,7 +39,7 @@ NEXT_PUBLIC_META_PIXEL_ID=（取得したID）
 
 対象:
 - ✅ `event-checkin`（spass.tokyo） — `app/layout.tsx` で全ページに自動挿入。signup完了時に `CompleteRegistration` 発火
-- ✅ `S_PASS_LP`（spass-lp.vercel.app） — `app/layout.tsx` で全ページに自動挿入。Apply フォーム送信成功時に `Lead` 発火
+- ✅ `S_PASS_LP`（lp.spass.tokyo） — `app/layout.tsx` で全ページに自動挿入。Apply フォーム送信成功時に `Lead` 発火
 
 ### Step 3: 発火確認
 - Chrome 拡張 [Meta Pixel Helper](https://chrome.google.com/webstore/detail/meta-pixel-helper/fdgfkebogiimcoedlicjlajpkdmockpc) をインストール
@@ -107,7 +107,7 @@ NEXT_PUBLIC_META_PIXEL_ID=（取得したID）
 
 | 用途 | URL（UTM付き） |
 |------|----------------|
-| LP経由（標準） | `https://spass-lp.vercel.app/?utm_source=meta&utm_medium=cpc&utm_campaign=lead_gen_2026q2&utm_content={creative_id}` |
+| LP経由（標準） | `https://lp.spass.tokyo/?utm_source=meta&utm_medium=cpc&utm_campaign=lead_gen_2026q2&utm_content={creative_id}` |
 | signup直結（高CV狙い） | `https://spass.tokyo/signup?plan=starter&utm_source=meta&utm_medium=cpc&utm_campaign=lead_gen_2026q2&utm_content={creative_id}` |
 
 `{creative_id}` は各クリエイティブで差し替え（例: `a1_invitation`, `b1_before_after` 等）。

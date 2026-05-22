@@ -32,6 +32,10 @@ const ACTION_LABEL: Record<AuditAction, string> = {
   mfa_enroll: '多要素認証 有効化',
   mfa_unenroll: '多要素認証 無効化',
   email_change: 'メールアドレス変更',
+  mfa_email_otp_sent: 'メールOTP 送信',
+  mfa_email_otp_verify_success: 'メールOTP 認証成功',
+  mfa_email_otp_verify_failure: 'メールOTP 認証失敗',
+  mfa_preference_change: 'MFA方式 変更',
 };
 
 /** ISO 文字列を「2026年5月19日 15:30」形式（Asia/Tokyo）で表示 */

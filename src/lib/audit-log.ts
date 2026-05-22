@@ -19,7 +19,11 @@ export type AuditAction =
   | 'password_change'
   | 'mfa_enroll'
   | 'mfa_unenroll'
-  | 'email_change';
+  | 'email_change'
+  | 'mfa_email_otp_sent'
+  | 'mfa_email_otp_verify_success'
+  | 'mfa_email_otp_verify_failure'
+  | 'mfa_preference_change';
 
 export interface AuditLog {
   id: string;

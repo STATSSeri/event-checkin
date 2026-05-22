@@ -47,45 +47,49 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // MFA フロー判定
-  //   preferred_mfa_method = 'email' → メールOTPフロー
-  //     last_mfa_verified_at が直近 12 時間以内なら通す。
-  //     それ以外は /mfa-challenge へ。
-  //   それ以外 (= 'totp' または NULL = レガシー扱い) → 従来の AAL2 フロー
-  //     Supabase の TOTP factor がアカウントに紐付いていて
-  //     nextLevel='aal2' なら currentLevel='aal1' のうちは /mfa-challenge へ。
+  // MFA フロー判定（preferred_mfa_method ごとに通過条件を切り替える）
+  //   'totp'    : AAL2 必須（メールOTPでは通さない、厳格）
+  //   'email'   : last_mfa_verified_at が直近 12 時間以内（AAL2 でも通さない、厳格）
+  //   NULL (レガシー、明示的に方式未選択) : AAL2 OR fresh email OTP のどちらでも OK
+  //     既存 TOTP ユーザーは AAL2 で従来通り通る。
+  //     /mfa-challenge でメール経路を選んだ場合も last_mfa_verified_at で通る。
   const { data: meta } = await supabase
     .from('user_security_meta')
     .select('preferred_mfa_method, last_mfa_verified_at')
     .eq('user_id', user.id)
     .maybeSingle();
 
+  const verifiedAt = meta?.last_mfa_verified_at
+    ? new Date(meta.last_mfa_verified_at).getTime()
+    : 0;
+  const emailFresh = verifiedAt > 0 &&
+    Date.now() - verifiedAt < OTP_VERIFIED_VALID_SECONDS * 1000;
+
+  const redirectToChallenge = () => {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mfa-challenge';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
+  };
+
   if (meta?.preferred_mfa_method === 'email') {
-    const verifiedAt = meta.last_mfa_verified_at
-      ? new Date(meta.last_mfa_verified_at).getTime()
-      : 0;
-    const fresh = verifiedAt > 0 &&
-      Date.now() - verifiedAt < OTP_VERIFIED_VALID_SECONDS * 1000;
-    if (!fresh) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/mfa-challenge';
-      url.searchParams.set('next', pathname);
-      return NextResponse.redirect(url);
-    }
+    return emailFresh ? supabaseResponse : redirectToChallenge();
+  }
+
+  // preferred='totp' または NULL（レガシー）
+  // レガシーの場合は fresh email OTP でも通す。
+  // 'totp' の場合は厳格に AAL2 のみ。
+  if (!meta?.preferred_mfa_method && emailFresh) {
     return supabaseResponse;
   }
 
-  // レガシー / TOTP ユーザー: AAL2 を要求
   const { data: aalData } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (
     aalData?.currentLevel === 'aal1' &&
     aalData?.nextLevel === 'aal2'
   ) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/mfa-challenge';
-    url.searchParams.set('next', pathname);
-    return NextResponse.redirect(url);
+    return redirectToChallenge();
   }
 
   return supabaseResponse;

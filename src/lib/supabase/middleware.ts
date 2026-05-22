@@ -49,10 +49,14 @@ export async function updateSession(request: NextRequest) {
 
   // MFA フロー判定（preferred_mfa_method ごとに通過条件を切り替える）
   //   'totp'    : AAL2 必須（メールOTPでは通さない、厳格）
-  //   'email'   : last_mfa_verified_at が直近 12 時間以内（AAL2 でも通さない、厳格）
-  //   NULL (レガシー、明示的に方式未選択) : AAL2 OR fresh email OTP のどちらでも OK
-  //     既存 TOTP ユーザーは AAL2 で従来通り通る。
-  //     /mfa-challenge でメール経路を選んだ場合も last_mfa_verified_at で通る。
+  //   'email'   : 現セッションで fresh email OTP 検証済み（AAL2 でも通さない、厳格）
+  //   NULL (レガシー、明示的に方式未選択) : AAL2 OR 現セッションで fresh email OTP
+  //
+  // 「現セッションで fresh」の定義:
+  //   last_mfa_verified_at が auth.users.last_sign_in_at より後（= ログイン後の検証）
+  //   かつ 12 時間以内（防御層）。
+  //   セッション変更（ログアウト→ログイン）で last_sign_in_at が更新されるため、
+  //   前セッションの検証は自動的に無効化される。
   const { data: meta } = await supabase
     .from('user_security_meta')
     .select('preferred_mfa_method, last_mfa_verified_at')
@@ -62,7 +66,14 @@ export async function updateSession(request: NextRequest) {
   const verifiedAt = meta?.last_mfa_verified_at
     ? new Date(meta.last_mfa_verified_at).getTime()
     : 0;
-  const emailFresh = verifiedAt > 0 &&
+  const lastSignInAt = user.last_sign_in_at
+    ? new Date(user.last_sign_in_at).getTime()
+    : 0;
+  const emailFresh =
+    verifiedAt > 0 &&
+    // 現セッション内での検証であること（前セッションの残骸を排除）
+    verifiedAt >= lastSignInAt &&
+    // 12 時間の最大有効期間（防御層）
     Date.now() - verifiedAt < OTP_VERIFIED_VALID_SECONDS * 1000;
 
   const redirectToChallenge = () => {

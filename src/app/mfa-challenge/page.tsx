@@ -30,6 +30,8 @@ type Mode = 'email' | 'totp';
 interface InitState {
   /** どちらのフォームを最初に出すか */
   initialMode: Mode;
+  /** ユーザーの保存済み preferred_mfa_method（切替UIの可否判定に使う） */
+  preferred: Mode | null;
   /** TOTP factor が登録済か（切替UIの可否判定に使う） */
   hasTotpFactor: boolean;
   /** 表示用のマスク済みメアド */
@@ -88,6 +90,7 @@ function ChallengeForm() {
     setMode(initialMode);
     setState({
       initialMode,
+      preferred,
       hasTotpFactor: Boolean(totp),
       maskedEmail: email ? maskEmail(email) : null,
       totpFactorId: totp?.id ?? null,
@@ -217,6 +220,13 @@ function ChallengeForm() {
         />
       )}
 
+      {/*
+        切替リンクの表示判定:
+          preferred='totp' のユーザーには「メールで受け取る」を出さない
+            （middleware が AAL2 のみ許可するため、メールを試しても通らずループする）
+          preferred='email' のユーザーは TOTP factor を持っていれば TOTP も使用可
+          preferred=NULL（レガシー）は両方使用可
+      */}
       {state.hasTotpFactor && mode === 'email' && (
         <button
           type="button"
@@ -226,7 +236,7 @@ function ChallengeForm() {
           認証アプリ（TOTP）で認証する
         </button>
       )}
-      {mode === 'totp' && (
+      {mode === 'totp' && state.preferred !== 'totp' && (
         <button
           type="button"
           onClick={() => switchMode('email')}
